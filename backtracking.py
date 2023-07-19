@@ -23,9 +23,9 @@ def simple_backtracking(
         max_it (int, optional): maximum number of iterations. Defaults to 100.
 
     Returns:
-       the lr, which has been used in performing a succesfull step. The step will be already performed. THUS, THIS METHOD CHANGES THE MODEL.
+       the lr, which has been used in performing a succesfull step. The step is not performed
     """
-    loss_fn=torch.nn.CrossEntropyLoss()
+    loss_fn = torch.nn.CrossEntropyLoss()
     lr = initial_step_size
     # print(f'lr before backtr as input {lr}')
 
@@ -35,6 +35,7 @@ def simple_backtracking(
         if new_loss < curr_loss:
             print(f'successful backtracking iteration: {it}')
             print(f'resulting learning rate: {lr}')
+            _undo_grad_step(model, lr)
             return lr
         _undo_grad_step(model, lr)
         lr *= diminishing_factor
@@ -47,7 +48,7 @@ def _apply_grad_step(model: torch.nn.Sequential, lr):
 
     Args:
         model (torch.nn.Sequential): the model
-        lr: The learing rate to be used 
+        lr: The learing rate to be used
     """
     for p in model.parameters():
         p.add_(p.grad, alpha=- lr)
@@ -58,6 +59,6 @@ def _undo_grad_step(model: torch.nn.Sequential, lr):
 
     Args:
         model (torch.nn.Sequential): the model
-        lr: The learing rate to be used 
+        lr: The learing rate to be used
     """
     return _apply_grad_step(model, - lr)

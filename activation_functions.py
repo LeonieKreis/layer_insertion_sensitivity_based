@@ -1,13 +1,12 @@
 import torch
 from torch import nn
-s
 
 
 # if you want to use a different epsilon in the activation function below,
 # the change must also be made in the file model_utils.py in freeze parameters!
 # it is hardcoded there!
 class TanhLU_shifted(nn.Module):
-'''
+    '''
     This activation function is in C²(R,R), which is needed for the lagrange multiplier theory
     sigma(x)=x for x>=0
     sigma(x)=tanh(x) for x<=0
@@ -16,7 +15,7 @@ class TanhLU_shifted(nn.Module):
     sigma'(x)=1, x>=0
     sigma'(x)= sech²(x)=1/cosh(x)², x<=0
     '''
-    
+
     def __init__(self, epsilon=0.01) -> None:
         super().__init__()
         self.epsilon = epsilon
@@ -27,6 +26,3 @@ class TanhLU_shifted(nn.Module):
 
     def __call__(self, x):
         return self.forward(x)
-
-
-
