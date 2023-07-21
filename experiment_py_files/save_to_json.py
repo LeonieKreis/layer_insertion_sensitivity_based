@@ -1,0 +1,45 @@
+import json
+
+
+def write_losses(path, losses, max_length, structures=None, errors=None, number=None, interval_testerror=None):
+    '''
+    saves losses in json file in a dict,
+    optionally saves also the information which loss happened on which model
+    when structures is given. In order to have the same length, for the std and mean function,
+    nan values get appended to the end of losses until the list has the length max_length.
+    Then we use mean and std methods, which filter out nan values for their compuations
+    '''
+
+    try:
+        with open(path) as file:
+            data = json.load(file)
+    except (json.JSONDecodeError, FileNotFoundError):
+        data = {}
+
+    if len(losses) < max_length:
+        diff = max_length - len(losses)
+        losses += diff*[float("nan")]
+
+    # save errors at the right points
+    errs = (max_length+1)*[float("nan")]
+    ind = 0  # getx_coords_of_error(structures, interval_testerror)# TODO
+    for i, e in zip(ind, errors):
+        errs[i] = e
+
+    if number is None:
+        number = len(data.keys())
+    if structures is None and errors is None:
+        data[str(number)] = {'losses': losses}
+    if structures is not None and errors is None:
+        data[str(number)] = {'losses': losses,
+                             'structures': structures}
+    if structures is None and errors is not None:
+        data[str(number)] = {'losses': losses,
+                             'errors': errs}
+    if structures is not None and errors is not None:
+        data[str(number)] = {'losses': losses,
+                             'structures': structures,
+                             'errors': errs}
+
+    with open(path, 'w') as file:
+        json.dump(data, file)
