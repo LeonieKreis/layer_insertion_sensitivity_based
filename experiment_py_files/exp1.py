@@ -142,7 +142,7 @@ final_testerror3 = []
 
 # declare path where json files are saved
 
-path1 = f'../results_data/Exp{k}_1.json'
+path1 = f'results_data/Exp{k}_1.json'
 if os.path.isfile(path1):
     print(f' file with path {path1} already exists!')
     quit()
@@ -184,11 +184,11 @@ for i in range(no_of_initializations):
             start_with_backtracking=None,
             v2=False
         )
-
+        
         # save losses1 and final accuracy1
         write_losses(path1,
                      mb_losses1, max_length, end_list, test_errors1,
-                     number=None, interval_testerror=interval_testerror)    # save losses3
+                     interval_testerror=interval_testerror, its_per_epoch=no_steps_per_epoch)    # save losses3
 
         # full_list_of_losses_1.append(mb_losses)
         final_testerror1.append(test_errors_short1[-1])
@@ -227,8 +227,9 @@ for i in range(no_of_initializations):
         )
 
         # save losses2
-        write_losses(f'../results_data/Exp{k}_2.json',
-                     mb_losses2, max_length, end_list, test_errors2, interval_testerror=interval_testerror)
+        write_losses(f'results_data/Exp{k}_2.json',
+                     mb_losses2, max_length, end_list, test_errors2, interval_testerror=interval_testerror,
+                     its_per_epoch=no_steps_per_epoch)
         # full_list_of_losses_2.append(mb_losses2)
         final_testerror2.append(test_errors_short2[-1])
 
@@ -269,10 +270,10 @@ for i in range(no_of_initializations):
                                                                  )
 
         # save losses3
-        write_losses(f'../results_data/Exp{k}_3.json',
-                     mblosses_classical, max_length, structures=[
-                         epochs_classical], errors=test_error_classical,
-                     number=None, interval_testerror=interval_testerror)
+        write_losses(f'results_data/Exp{k}_3.json', mblosses_classical, max_length, structures=[
+                    epochs_classical], errors=test_error_classical,
+                    interval_testerror=interval_testerror,
+                    its_per_epoch=no_steps_per_epoch)
 
         # full_list_of_losses_3.append(mb_losses_comp)
         final_testerror3.append(check_testerror(
