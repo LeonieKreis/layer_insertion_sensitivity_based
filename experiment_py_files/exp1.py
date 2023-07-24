@@ -2,12 +2,14 @@
 import torch
 import random
 import os
+import sys
 import numpy as np
 from torch import nn
 from torch.utils.data import DataLoader
 from torchvision import datasets
 from torchvision.transforms import ToTensor
 
+sys.path.append('../layer_insertion_sensitivity_based')
 
 from layer_insertion_loop import layer_insertion_loop
 from train_and_test_ import train, check_testerror
@@ -30,10 +32,10 @@ torch.set_num_threads(8)
 # Define hyperparameters
 
 hidden_layers_start = 1
-fix_width = 20
+fix_width = 10
 no_iters = 2
 lr_decrease_after_li = 0.8
-epochs = [10, 5, 5]
+epochs = [3, 2, 2]  # [10, 5, 5]
 wanted_testerror = 2.
 _type = 'fwd'
 act_fun = nn.ReLU
@@ -121,7 +123,7 @@ T3 = True
 
 # define no of training run instances
 
-no_of_initializations = 50
+no_of_initializations = 3  # 50
 
 # set up empty lists for saving the observed quantities
 # (besides the save to the json file)
