@@ -1,7 +1,7 @@
 import json
 
 
-def write_losses(path, losses, max_length, structures=None, errors=None, number=None, interval_testerror=None):
+def write_losses(path, losses, max_length, structures=None, errors=None, interval_testerror=None, its_per_epoch=1):
     '''
     saves losses in json file in a dict,
     optionally saves also the information which loss happened on which model
@@ -22,12 +22,11 @@ def write_losses(path, losses, max_length, structures=None, errors=None, number=
 
     # save errors at the right points
     errs = (max_length+1)*[float("nan")]
-    ind = 0  # getx_coords_of_error(structures, interval_testerror)# TODO
+    ind = [i * interval_testerror * its_per_epoch for i in range(len(errs))]
     for i, e in zip(ind, errors):
         errs[i] = e
 
-    if number is None:
-        number = len(data.keys())
+    number = len(data.keys())
     if structures is None and errors is None:
         data[str(number)] = {'losses': losses}
     if structures is not None and errors is None:
