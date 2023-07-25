@@ -105,7 +105,7 @@ def layer_insertion_loop(
         free_norms, freezed_norms, mb_losses2 = calculate_shadowprices_minibatch(
             train_dataloader, model_tmp, freezed)
 
-        mb_losses_total = mb_losses_total+mb_losses2
+        # mb_losses_total = mb_losses_total+mb_losses2
 
         # select new model based on the shadow prices
         # insert one frozen layer and unfreeze, delete other frozen layers
