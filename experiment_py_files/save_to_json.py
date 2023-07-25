@@ -3,11 +3,11 @@ import json
 
 def write_losses(path, losses, max_length, structures=None, errors=None, interval_testerror=None, its_per_epoch=1):
     '''
-    saves losses in json file in a dict,
+    saves losses in json file under 'path' in a dict,
     optionally saves also the information which loss happened on which model
     when structures is given. In order to have the same length, for the std and mean function,
     nan values get appended to the end of losses until the list has the length max_length.
-    Then we use mean and std methods, which filter out nan values for their compuations
+    also errors are saved, the intervals must be specified with interval testerror and its_per_epoch. The remaining iterations are filled with nan.
     '''
 
     try:

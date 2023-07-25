@@ -12,24 +12,22 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
 
     Args:
         model: model with frozen (or no frozen) parameters
-        loss_fn: loss function
-        training_data_in: torch.tensor which holds the training data features
-        training_data_out: torch.tensor which holds the training data labels
-        stall_detector: object of class stall_detector, which handles the stalling checking
+        train_dataloader: iterable from pytorch containing the training data
         epochs (int): number of epochs, in which we want to train equality constrained. default 1
-        bs (int): batch size, default 10
-        lr (float): learning rate, default 0.1
-        use_adaptive_lr (bool): boolean indicating whether we use a fixed lr or the adaptive version
-        by Frederik Köhne. default False
-        freezed (list): list of frozen parameters in the model.
-        if none are frozen use freezed=None (which is also the default)
+        optimizer: optimizer, e.g. torch.nn.optim.SGD
+        scheduler: lr scheduler, e.g. torch.nn.optim.lr_scheduler.StepLR
+        wanted_testerror: between 100 and 0 indicating which testerror is sufficient to stop.
+        start_with_backtracking (None or int): if None, there is  no backtracking performed, if it is an integer k ,
+            then for the first k epochs, backtracking is performed after the layer insertion.
+        check_testerror_between (None or int): if none, the testerror is noct checked while training on a model.
+            If an integer is specified, e.g. k=1, the after k epochs, the testerror is checked during training on one model.
+        test_dataloader: iterable from pytorch containing the test data
+        print_param_flag (default False): if True, prints the parameter gradients for the first 10 epochs
 
     Out:
-        norms (list): a list containing the scaled gradient 2-norms for each minibatch computation
-        freezed_norms (list of lists): each list in the list represents one frozen model parameter
-        (so weight or bias). it contains the scaled gradient norm wrt the specific parameter
-        for all minibatches
         mb_losses (list): list of all minibatch losses during training
+        lr: current lr used at end of training
+        test_err_list (list): list which contain the testerrors during training if computed
 
     '''
     if start_with_backtracking is not None:

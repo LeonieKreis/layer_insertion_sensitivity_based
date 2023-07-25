@@ -8,9 +8,15 @@ def tmp_net(dim_in, dim_out, hidden_layers, dim_hidden_layers, act_fun, _type, m
     builds a new model for the equality constrained training with frozen parameters based on an old/coarse model.
 
     Args:
+        dim_in (int): (flattened) dimesion of the images
+        dim_out (int): number of classes
         hidden_layers (int): number of hidden layers in the old/coarse model
         dim_hidden_layers (int or list): the width of the hidden layers. If int, all hidden layers have the same width.
+        act_fun: activation function of the model
+        _type: type of the model
         model: old/coarse pytorch model
+        v2 (default False): determines for 2weight resnets whether the init strategy with zeros in the outer or inner weight is taken.
+        v2 corresponds to the more restrictive version where the inner weight is initialized with a zero matrix.
 
     Out:
         new_model: newly constructed pytorch model with identity mappings in the new layers
@@ -93,13 +99,19 @@ def select_new_model(avg_grad_norm, freezed_norms, model, freezed, kwargs_net, m
         second weight,.. and so on. each list contains the scaled gradient norms wrt the parameter for one epoch.
         model: model from the equality constrained training, i.e. the network with half frozen layers
         freezed (list): list of the freezed parameters in model
+        kwargs_net: dict, which contains the info about model
         mode (string): either 'min' or 'max', 'abs min' or 'abs max' so far, indicating whether the layer with th4
         largest or smallest or absolute value smallest (comparison) or absolute value largest (theory)
         lagrange multipliers are chosen in model selection. default is 'abs max'.
+        _type: type of the model
+        v2 (default False): determines for 2weight resnets whether the init strategy with zeros in the outer or inner weight is taken.
+        v2 corresponds to the more restrictive version where the inner weight is initialized with a zero matrix.
+
 
     Out:
         new_model: model which has the selected new layer initilazied with identity and zero but not frozen.
         new_kwargs_net (dict): kwargs of new_model
+        child_for_return: child of the new net which is the newly inserted one (ccan be used for training only the new parameters)
     '''
     # look only at relevant weights for the sensitivities ##############################################################
     freezed_norms_only_relevant_weights = []

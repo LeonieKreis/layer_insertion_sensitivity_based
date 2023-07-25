@@ -7,26 +7,40 @@ from calculate_shadow_prices import calculate_shadowprices_minibatch
 def layer_insertion_loop(
         iters, epochs, model, kwargs_net, dim_in, dim_out, train_dataloader, test_dataloader, lr_init,
         wanted_test_error=0.5, mode='abs max', optimizer_type='SGD', lrschedule_type='StepLR', lrscheduler_args=None,
-        check_testerror_between=None, decrease_after_li=1., print_param_flag=False, start_with_backtracking=False,
+        check_testerror_between=None, decrease_after_li=1., print_param_flag=False, start_with_backtracking=None,
         v2=False):
     '''
     implements training loop for (adaptive) layer insertion and minibatch SGD
 
     Args:
-            model: pytorch feedfwd net
-            kwargs_net (dict): keywordargs for building the model (feedforward net)
-            epochs (int): maximum number of epochs which are performed during the classical learning
-            iters (int): number of layer instertion loops which are performed at most. default 5
+            iters (int): number of layer insertions which are done
+            epochs (int or list): maximum number of epochs which are performed during the learning
+            model: pytorch net. should be either a resnet with two weights or a feedforward net 
+            kwargs_net (dict): dict specifying the 4 keys hidden_layers, dim_hidden_layers, act_fun and type
+            dim_in (int): (flattened) dimesion of the images
+            dim_out (int): number of classes
+            train_dataloader: iterable from pytorch containing the training data
+            test_dataloader: iterable from pytorch containing the test data
+            lr_init : inital learning rate
             wanted_test_error (float): test error until we want to train (optimally). default 0.5
-            TODO
-            mode (string): either 'min' or 'max' so far, indicating whether the layer with th largest (theory)
-            or smallest (comparison) lagrange multipliers are chosen in model selection. default is 'max'.
+            mode (string): either 'abs min' or 'abs max' , 'pos 0' or 'threshold, indicating whether the layer with th largest (theory)
+            or smallest (comparison) lagrange multipliers are chosen in model selection. default is 'abs max'
+            optimizer_type (string): so far only 'SGD' is implemented
+            lrschedule_type (string): so far only 'StepLR' is implemented
+            lrscheduler_args (default None): dict which contains the hyperparameters needed by the lrscheduler
+            check_testerror_between (None or int): if none, the testerror is noct checked while training on a model.
+            If an integer is specified, e.g. k=1, the after k epochs, the testerror is checked during training on one model.
+            decrease_after_li: factor by which the current lr is decreased after a new layer is inserted.
+            print_param_flag (default False): if True, prints the parameter gradients for the first 10 epochs
+            start_with_backtracking (None or int): if None, there is  no backtracking performed, if it is an integer k ,
+            then for the first k epochs, backtracking is performed after the layer insertion.
+
 
     Out:
         model: trained model (of a a-priori unknown architecture)
         mb_losses_total (list): list containing the minibatch losses during the adaptive training loop
-        test_err_list (list): list of test errors after each "step 1"-training
-        end_of_training_steps (list): list which holds information how many epochs were performed in each loop
+        test_err_list (list): list of test errors after each "step 1"-training on a model
+        test_err_list2 (list): list of test errors computed also during the training
 
     '''
 

@@ -12,9 +12,15 @@ def freeze_params(model, act_fun, old_model, _type='fwd', v2=False):
     Args:
         model: feedforward or resnet2 network which should be trained. It must use activation functions,
         which support inserting identity layers, most popular: ReLU
+        act_fun: activation function of the model
+        old_model: model, before any identity layers are inserted
+        _type: type of the model
+        v2 (default False): determines for 2weight resnets whether the init strategy with zeros in the outer or inner weight is taken.
+        v2 corresponds to the more restrictive version where the inner weight is initialized with a zero matrix.
+
 
     Out:
-        list which contains the frozen parameters of the model
+        freezed: list which contains the frozen parameters of the model. The parameters of model are now initialized such that it resembles the function of old_model
     '''
     freezed = []
 
@@ -202,6 +208,9 @@ def freeze_params(model, act_fun, old_model, _type='fwd', v2=False):
 
 
 def freeze_old_params(model, new_child):
+    '''
+    freezes old parameters and lets only the new layer unfrozen.
+    '''
     old_params = []
     for child in model.children():
         if child is not new_child:

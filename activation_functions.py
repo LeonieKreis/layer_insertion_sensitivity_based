@@ -8,12 +8,9 @@ from torch import nn
 class TanhLU_shifted(nn.Module):
     '''
     This activation function is in C²(R,R), which is needed for the lagrange multiplier theory
-    sigma(x)=x for x>=0
-    sigma(x)=tanh(x) for x<=0
+    sigma(x)=x for x>=epsilon
+    sigma(x)=epsilon*(tanh((x-epsilon)/epsilon) +1)for x<=epsilon
 
-    Hence the derivative
-    sigma'(x)=1, x>=0
-    sigma'(x)= sech²(x)=1/cosh(x)², x<=0
     '''
 
     def __init__(self, epsilon=0.01) -> None:

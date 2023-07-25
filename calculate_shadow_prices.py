@@ -7,13 +7,12 @@ def calculate_shadowprices_minibatch(train_dataloader, model, freezed):
     '''
     calculates gradient entries of the unfrozen and frozen parameters at the current point without a gradient update.
     We look at the squared frobenius norm of the shadow price wrt each parameter scaled by the number of entries
-    in the parameter.
+    in the parameter. If the dataloader has minibatches stpred, the shadow prices are averaged over the minibatches
+    (without updating the model in this epoch)
 
     Args:
-        bs: batchsize used for the computation of the sensitivities
+        train_dataloader: pytorch iterable dataloader which contains the training data
         model: model for which we calculate the gradient entries
-        full_training_data_in: inputs of the training data
-        full_training_data_out: outputs of the training data
         freezed: list of frozen parameters in model
 
     Out:

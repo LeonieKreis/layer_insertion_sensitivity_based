@@ -60,7 +60,17 @@ def translator(data, show=True):
     areaplot(*cats, show=show)
 
 
-def plot_statistics(*methods, _type='loss', show=True, loss=True, smooth=None):
+def plot_statistics(*methods, show=True, smooth=None):
+    '''
+    plots mean and std of the methods.
+
+    Args:
+        methods: list of lists of lists which should be plotted
+        show: default True indicates whether plot should be shown
+        smooth: if None, no smoothing is applied to the data,
+        if smooth between 0 and 1, we smooth the data with exponential moving average.
+
+    '''
     colors = ['b', 'r', 'y', 'g', 'c', 'm', 'k']
     for i, a in enumerate(methods):
         mean1 = np.nanmean(a, axis=0)
