@@ -2,24 +2,22 @@ import numpy as np
 import json
 import matplotlib.pyplot as plt
 import torch
-import plotting
+import plot_helper
 from utils import ema_np
-# from plot_helper import adjust_lightness
 
-k = 1  
+k = 1
 
-std = True
+std = False
 plot_b = False
-plot_error = False
+plot_error = True
+plot_area = True
 log_scale = True
-smooth = 0.999
+smooth = 0.95
 
-labels = ['abs max', 'abs min', 'comparison4']
-
-# a = np.loadtxt(f"results_data/E{k}_1.txt", delimiter=",")
-# # print(a.shape)
-# b = np.loadtxt(f"results_data/E{k}_2.txt", delimiter=",")
-# c = np.loadtxt(f"results_data/E{k}_3.txt", delimiter=",")
+if plot_b:
+    labels = ['abs max', 'abs min', 'comparison']
+if not plot_b:
+    labels = ['abs max', 'comparison']
 
 with open(f"results_data/Exp{k}_1.json") as file:
     # a_temp = list(json.load(file).values())
@@ -62,28 +60,40 @@ with open(f"results_data/Exp{k}_3.json") as file:
     if plot_error:
         ce = np.array(c_err)
 
-methods = [a, b, c]
+if plot_b:
+    methods = (a, b, c)
+if not plot_b:
+    methods = (a, c)
 
-if plot_b and not plot_error:
-    fig, axes = plt.subplots(3, gridspec_kw={'height_ratios': [3, 1, 1]})
-    m = 1
-    n = 2
-if not plot_b and not plot_error:
-    fig, axes = plt.subplots(2, gridspec_kw={'height_ratios': [3, 1]})
-    m = 1
-    n = 3  # egal
-if plot_b and plot_error:
-    fig, axes = plt.subplots(4, gridspec_kw={'height_ratios': [3, 3, 1, 1]})
-    m = 2
-    n = 3
-if not plot_b and plot_error:
-    fig, axes = plt.subplots(3, gridspec_kw={'height_ratios': [3, 3, 1]})
-    m = 2
-    n = 3  # egal
+if plot_error:
+    if plot_b:
+        methods_e = (ae, be, ce)
+    if not plot_b:
+        methods_e = (ae, ce)
+
+if plot_area:
+    if not plot_error:
+        fig, axes = plt.subplots(2, gridspec_kw={'height_ratios': [3, 1]})
+        m = 1
+        n = 3  # egal
+    if plot_error:
+        fig, axes = plt.subplots(3, gridspec_kw={'height_ratios': [3, 3, 1]})
+        m = 2
+        n = 3  # egal
+
+if not plot_area:
+    if not plot_error:
+        fig, axes = plt.subplots(2, gridspec_kw={'height_ratios': [10, 1]})
+        m = 0
+        n = 2  # egal
+    if plot_error:
+        fig, axes = plt.subplots(2, gridspec_kw={'height_ratios': [3, 3]})
+        m = 1
+        n = 2  # egal
 
 # first subplot plot losses
 colors_ = ['b', 'r', 'y']  # , 'g', 'c', 'm', 'k']
-for i, aa in enumerate((a, b, c)):
+for i, aa in enumerate(methods):
     print(aa.shape)
     mean1 = np.nanmean(aa, axis=0)
     if std:
@@ -100,123 +110,86 @@ for i, aa in enumerate((a, b, c)):
         label = labels[i]
     axes[0].plot(mean1, colors_[i], label=label)
     if std:
-        axes[0].plot(mean1+std1, color=colors_[i], linestyle=':')
-        axes[0].plot(np.maximum(mean1-std1, np.zeros_like(mean1)),
+        axes[0].plot(mean1 + std1, color=colors_[i], linestyle=':')
+        axes[0].plot(np.maximum(mean1 - std1, np.zeros_like(mean1)),
                      color=colors_[i], linestyle=':')
 
     axes[0].legend()
-    axes[0].set_ylim([0, 1])
+    #axes[0].set_ylim([0, 2])
     ma = max([a.shape[1] for a in methods])
     axes[0].set_xlim([0, ma])
-    axes[0].set_xlabel('epochs')
-    axes[0].set_ylabel('average loss')
+    axes[0].set_xlabel('iterations')
+    axes[0].set_ylabel('average (smoothed) minibatch loss')
     if log_scale:
         axes[0].set_yscale('log')
     axes[0].title.set_text(
-        'mean loss averaged over all trainingsruns with dotted std')
+        'mean mb-loss averaged over all trainingsruns with dotted std')
 
 
 # plot errors
 if plot_error:
     colors_ = ['b', 'r', 'y']  # , 'g', 'c', 'm', 'k']
-    for i, aa in enumerate((ae, be, ce)):
+    for i, aa in enumerate(methods_e):
         print(aa.shape)
         mean1 = np.nanmean(aa, axis=0)
         if std:
             std1 = np.nanstd(aa, axis=0)
-        # print(mean1.shape)
-
-        if smooth is not None:
-            mean1 = ema_np(mean1, gamma=smooth)
-            if std:
-                std1 = ema_np(std1, gamma=smooth)
-
+        
         if labels is None:
             label = str(i)
         else:
             label = labels[i]
-        axes[1].plot(mean1, colors_[i]+'o', label=label,
+        axes[1].plot(range(len(mean1)),mean1, colors_[i] + 'o', label=label,
                      markersize=5)  # , linestyle='o')
         if std:
-            axes[1].plot(mean1+std1, colors_[i]+'o', markersize=2)
-            axes[1].plot(np.maximum(mean1-std1, np.zeros_like(mean1)),
-                         colors_[i]+'o', markersize=2)
+            axes[1].plot(mean1 + std1, colors_[i] + 'o', markersize=2)
+            axes[1].plot(np.maximum(mean1 - std1, np.zeros_like(mean1)),
+                         colors_[i] + 'o', markersize=2)
 
         axes[1].legend()
-        axes[1].set_ylim([0, 60])
+        axes[1].set_ylim([0, 10])
         ma = max([a.shape[1] for a in methods])
-        axes[1].set_xlim([0, ma])
-        axes[1].set_xlabel('epochs')
-        axes[1].set_ylabel('error')
-        # xes[1].title.set_text(
-        #    'error averaged over all trainingsruns with dotted std')
+        #axes[1].set_xlim([0, ma])
+        axes[1].set_xlabel('iterations')
+        axes[1].set_ylabel('test error averaged')
+        
+
+if plot_area:
+    colors = None
+    # second and third subplot
+    cats_a = plot_helper.translator(a_struct, show=False)
+    cats_b = plot_helper.translator(b_struct, show=False)
+
+    # first a
+    x = range(len(cats_a[0]))
+    zero = torch.zeros_like(cats_a[0])
 
 
-colors = None
-# second and third subplot
-cats_a = plotting.translator(a_struct, show=False)
-cats_b = plotting.translator(b_struct, show=False)
-
-# first a
-x = range(len(cats_a[0]))
-zero = torch.zeros_like(cats_a[0])
-
-
-def lines():
-    last = zero
-
-    for curve in cats_a:
-        next = last + curve
-        yield last, next
-        last += curve
-
-
-if colors is not None:
-
-    for (line1, line2), color in zip(lines(), colors):
-        axes[m].fill_betweenx(x, line1, line2, color)
-
-else:
-
-    for line1, line2 in lines():
-        axes[m].fill_between(x, line1, line2)
-# if save_as:
-#     plt.savefig(save_as)
-axes[m].set_ylabel('training runs')
-axes[m].set_xlabel('epochs')
-axes[m].set_xlim([0, ma])
-axes[m].title.set_text(
-    'proportion of traningsruns in absmax for each epoch (the colors display the different model) ')
-
-
-# then b
-if plot_b:
-    x = range(len(cats_b[0]))
-    zero = torch.zeros_like(cats_b[0])
-
-    def lines2():
+    def lines():
         last = zero
 
-        for curve in cats_b:
+        for curve in cats_a:
             next = last + curve
             yield last, next
             last += curve
 
+
     if colors is not None:
 
-        for (line1, line2), color in zip(lines2(), colors):
-            axes[n].fill_betweenx(x, line1, line2, color)
+        for (line1, line2), color in zip(lines(), colors):
+            axes[m].fill_betweenx(x, line1, line2, color)
 
     else:
 
-        for line1, line2 in lines2():
-            axes[n].fill_between(x, line1, line2)
+        for line1, line2 in lines():
+            axes[m].fill_between(x, line1, line2)
     # if save_as:
     #     plt.savefig(save_as)
-    axes[n].set_ylabel('training runs')
-    axes[n].set_xlabel('epochs')
-    axes[n].set_xlim([0, ma])
-    axes[n].title.set_text(
-        'proportion of traningsruns in absmin for each epoch (the colors display the different model) ')
+    axes[m].set_ylabel('training runs')
+    axes[m].set_xlabel('iterations')
+    axes[m].set_xlim([0, ma])
+    axes[m].title.set_text(
+        'proportion of traningsruns in absmax for each epoch (the colors display the different model) ')
+
 plt.tight_layout()
 plt.show()
