@@ -32,10 +32,10 @@ torch.set_num_threads(8)
 # Define hyperparameters
 
 hidden_layers_start = 1
-fix_width = 10
-no_iters = 2
+fix_width = 15
+no_iters = 3
 lr_decrease_after_li = 0.8
-epochs = [3, 2, 2]  # [10, 5, 5]
+epochs = [15,15,15,15]  # [10, 5, 5]
 wanted_testerror = 2.
 _type = 'fwd'
 act_fun = nn.ReLU
@@ -104,13 +104,13 @@ dim_out = 10
 kwargs_net_new = {  # classical net
     'hidden_layers': hidden_layers_classical,
     'dim_hidden_layers': fix_width,
-    'act_fun': nn.Tanh,  # nn.ReLU,  # TanhLU_shifted
+    'act_fun': act_fun,  # nn.ReLU,  # TanhLU_shifted
     'type': 'res2'
 }
 
 # classical net
 kwargs_net_classical = {
-    'hidden_layers': 3,
+    'hidden_layers': 4,
     'dim_hidden_layers': fix_width,
     'act_fun': act_fun,
     'type': _type
@@ -123,7 +123,7 @@ T3 = True
 
 # define no of training run instances
 
-no_of_initializations = 3  # 50
+no_of_initializations = 50  # 50
 
 # set up empty lists for saving the observed quantities
 # (besides the save to the json file)
@@ -215,7 +215,7 @@ for i in range(no_of_initializations):
             test_dataloader=test_dataloader,
             lr_init=lr_init,
             wanted_test_error=wanted_testerror,
-            mode='abs min',
+            mode='pos 0',
             optimizer_type=optimizer_type,
             lrschedule_type=lrscheduler_type,
             lrscheduler_args=lrscheduler_args,
