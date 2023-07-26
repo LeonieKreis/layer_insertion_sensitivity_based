@@ -41,6 +41,7 @@ def layer_insertion_loop(
         mb_losses_total (list): list containing the minibatch losses during the adaptive training loop
         test_err_list (list): list of test errors after each "step 1"-training on a model
         test_err_list2 (list): list of test errors computed also during the training
+        exit_flag: 0 or 1. 1 indicates that wanted testerror was reached during training
 
     '''
 
@@ -54,6 +55,7 @@ def layer_insertion_loop(
     test_err_list = []
     test_err_list2 = []
     lr = lr_init
+    exit_flag = 0 # means that wanted testerror is not attained
 
     for k in range(iters):
         # iterate on current net
@@ -71,7 +73,7 @@ def layer_insertion_loop(
                 optimizer, step_size=step_size, gamma=gamma)
 
         # train
-        mb_losses1, lr_end_lastloop, test_error_l2 = train(
+        mb_losses1, lr_end_lastloop, test_error_l2, exit_flag = train(
             model, train_dataloader, epochs[k], optimizer, lrscheduler, wanted_testerror=wanted_test_error,
             start_with_backtracking=start_with_backtracking, check_testerror_between=check_testerror_between,
             test_dataloader=test_dataloader, print_param_flag=print_param_flag)
@@ -86,8 +88,9 @@ def layer_insertion_loop(
         test_err_list.append(curr_test_err)
         print(f'Test error after first step of loop {k+1} is {curr_test_err}!')
         if curr_test_err <= wanted_test_error:
+            exit_flag = 1
             print(f'The final model has the architecture: {model}')
-            return model, mb_losses_total, test_err_list, test_err_list2
+            return model, mb_losses_total, test_err_list, test_err_list2, exit_flag
 
         # build partially frozen net for the shadow prices
         # build temporary net for the equality constrained training in next step
@@ -106,7 +109,7 @@ def layer_insertion_loop(
             train_dataloader, model_tmp, freezed)
 
         # mb_losses_total = mb_losses_total+mb_losses2
-        mb_losses_total = mb_losses_total * [sum(mb_losses2)/len(mb_losses2)]
+        mb_losses_total = mb_losses_total + [sum(mb_losses2)/len(mb_losses2)]
 
         # select new model based on the shadow prices
         # insert one frozen layer and unfreeze, delete other frozen layers
@@ -130,7 +133,7 @@ def layer_insertion_loop(
         lrscheduler = torch.optim.lr_scheduler.StepLR(
             optimizer, step_size=step_size, gamma=gamma)
 
-    mb_losseslast, lr, test_error_l2 = train(model, train_dataloader, epochs[k+1], optimizer, lrscheduler,
+    mb_losseslast, lr, test_error_l2, exit_flag = train(model, train_dataloader, epochs[k+1], optimizer, lrscheduler,
                                              wanted_testerror=wanted_test_error,
                                              start_with_backtracking=start_with_backtracking,
                                              check_testerror_between=check_testerror_between,
@@ -141,9 +144,11 @@ def layer_insertion_loop(
 
     test_err_list2 = test_err_list2 + test_error_l2
     curr_test_err = check_testerror(test_dataloader, model)
+    if curr_test_err <= wanted_test_error:
+        exit_flag = 1
     test_err_list.append(curr_test_err)
 
     print(f'Test error of loop {k+2} is {curr_test_err}!')
     print(f'The final model has the architecture: {model}')
 
-    return model, mb_losses_total, test_err_list, test_err_list2
+    return model, mb_losses_total, test_err_list, test_err_list2, exit_flag 

@@ -28,8 +28,10 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
         mb_losses (list): list of all minibatch losses during training
         lr: current lr used at end of training
         test_err_list (list): list which contain the testerrors during training if computed
+        exit_flag: 0 or 1. 1 indicates that wanted testerror was reached during training
 
     '''
+    exit_flag = 0
     if start_with_backtracking is not None:
         # no of epochs in the beginning where we use backtracking
         backtr_max = start_with_backtracking
@@ -40,12 +42,14 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
     # loop over epochs
     for e in range(epochs):
         # print(f'epoch number {e+1}')
-        for X, y in train_dataloader:
+        for batch, (X, y) in enumerate(train_dataloader):
             model.zero_grad()
             loss = torch.nn.CrossEntropyLoss()(model(X), y)
             loss.backward()
 
             # ggf print loss
+            if batch == 0:
+                print('mbloss: ', loss.item())
 
             mb_losses.append(loss.item())  # store minibatch losses in a list
 
@@ -71,9 +75,10 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
                 test_err_list.append(test_err)
                 print(f'(dataset)error at epoch {e} is {test_err}')
                 if test_err <= wanted_testerror:
-                    return mb_losses, optimizer.param_groups[0]['lr'], test_err_list
+                    exit_flag = 1
+                    return mb_losses, optimizer.param_groups[0]['lr'], test_err_list, exit_flag
 
-    return mb_losses, optimizer.param_groups[0]['lr'], test_err_list
+    return mb_losses, optimizer.param_groups[0]['lr'], test_err_list, exit_flag
 
 
 def check_testerror(test_dataloader, model):

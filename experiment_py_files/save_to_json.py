@@ -1,13 +1,14 @@
 import json
 
 
-def write_losses(path, losses, max_length, structures=None, errors=None, interval_testerror=None, its_per_epoch=1):
+def write_losses(path, losses, max_length, structures=None, errors=None, interval_testerror=None, exit_flag=None, its_per_epoch=1):
     '''
     saves losses in json file under 'path' in a dict,
     optionally saves also the information which loss happened on which model
     when structures is given. In order to have the same length, for the std and mean function,
     nan values get appended to the end of losses until the list has the length max_length.
     also errors are saved, the intervals must be specified with interval testerror and its_per_epoch. The remaining iterations are filled with nan.
+    further, the exit flag can be saved
     '''
 
     try:
@@ -27,18 +28,38 @@ def write_losses(path, losses, max_length, structures=None, errors=None, interva
         errs[i] = e
 
     number = len(data.keys())
-    if structures is None and errors is None:
-        data[str(number)] = {'losses': losses}
-    if structures is not None and errors is None:
-        data[str(number)] = {'losses': losses,
-                             'structures': structures}
-    if structures is None and errors is not None:
-        data[str(number)] = {'losses': losses,
-                             'errors': errs}
-    if structures is not None and errors is not None:
-        data[str(number)] = {'losses': losses,
-                             'structures': structures,
-                             'errors': errs}
+
+    if exit is None:
+        if structures is None and errors is None:
+            data[str(number)] = {'losses': losses}
+        if structures is not None and errors is None:
+            data[str(number)] = {'losses': losses,
+                                'structures': structures}
+        if structures is None and errors is not None:
+            data[str(number)] = {'losses': losses,
+                                'errors': errs}
+        if structures is not None and errors is not None:
+            data[str(number)] = {'losses': losses,
+                                'structures': structures,
+                                'errors': errs}
+
+    if exit_flag is not None:
+        if structures is None and errors is None:
+            data[str(number)] = {'losses': losses,
+                                 'exit_flag': exit_flag}
+        if structures is not None and errors is None:
+            data[str(number)] = {'losses': losses,
+                                'structures': structures,
+                                 'exit_flag': exit_flag}
+        if structures is None and errors is not None:
+            data[str(number)] = {'losses': losses,
+                                'errors': errs,
+                                 'exit_flag': exit_flag}
+        if structures is not None and errors is not None:
+            data[str(number)] = {'losses': losses,
+                                'structures': structures,
+                                'errors': errs,
+                                 'exit_flag': exit_flag}
 
     with open(path, 'w') as file:
         json.dump(data, file)

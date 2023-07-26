@@ -5,14 +5,15 @@ import torch
 import plot_helper
 from utils import ema_np
 
-k = 1
+k = 2
 
 std = False
 plot_b = False
 plot_error = True
 plot_area = True
+show_exit_flag = True
 log_scale = True
-smooth = 0.95
+smooth = 0.995
 
 if plot_b:
     labels = ['abs max', 'abs min', 'comparison']
@@ -26,26 +27,26 @@ with open(f"results_data/Exp{k}_1.json") as file:
     a_struct = [f[i]['structures'] for i in f.keys()]
     if plot_error:
         a_err = [f[i]['errors'] for i in f.keys()]
-    # for i, li in enumerate(a_temp):
-    #    print(f'{i} and len of mb list {len(li)}')
+    if show_exit_flag:
+        a_ef = [f[i]['exit_flag'] for i in f.keys()]
     a = np.array(a_temp)
     if plot_error:
         ae = np.array(a_err)
     # print(f'shape of a {a.shape}')
 
-
-with open(f"results_data/Exp{k}_2.json") as file:
-    # b_temp = list(json.load(file).values())
-    f = json.load(file)
-    b_temp = [f[i]['losses'] for i in f.keys()]
-    b_struct = [f[i]['structures'] for i in f.keys()]
-    if plot_error:
-        b_err = [f[i]['errors'] for i in f.keys()]
-    # for i, li in enumerate(b_temp):
-    #    print(f'{i} and len of mb list {len(li)}')
-    b = np.array(b_temp)
-    if plot_error:
-        be = np.array(b_err)
+if plot_b:
+    with open(f"results_data/Exp{k}_2.json") as file:
+        # b_temp = list(json.load(file).values())
+        f = json.load(file)
+        b_temp = [f[i]['losses'] for i in f.keys()]
+        b_struct = [f[i]['structures'] for i in f.keys()]
+        if plot_error:
+            b_err = [f[i]['errors'] for i in f.keys()]
+        if show_exit_flag:
+            b_ef = [f[i]['exit_flag'] for i in f.keys()]
+        b = np.array(b_temp)
+        if plot_error:
+            be = np.array(b_err)
 
 
 with open(f"results_data/Exp{k}_3.json") as file:
@@ -54,8 +55,8 @@ with open(f"results_data/Exp{k}_3.json") as file:
     c_temp = [f[i]['losses'] for i in f.keys()]
     if plot_error:
         c_err = [f[i]['errors'] for i in f.keys()]
-    # for i, li in enumerate(c_temp):
-    #    print(f'{i} and len of mb list {len(li)}')
+    if show_exit_flag:
+        c_ef = [f[i]['exit_flag'] for i in f.keys()]
     c = np.array(c_temp)
     if plot_error:
         ce = np.array(c_err)
@@ -158,8 +159,7 @@ if plot_area:
     colors = None
     # second and third subplot
     cats_a = plot_helper.translator(a_struct, show=False)
-    cats_b = plot_helper.translator(b_struct, show=False)
-
+    
     # first a
     x = range(len(cats_a[0]))
     zero = torch.zeros_like(cats_a[0])
