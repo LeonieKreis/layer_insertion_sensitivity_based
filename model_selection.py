@@ -327,9 +327,9 @@ def select_new_model(avg_grad_norm, freezed_norms, model, freezed, kwargs_net, m
         if _type == 'res2':
             # weight parameter corresponding to max_index
             if v1:
-                best_layer_weight = freezed[2 + 3 * max_index]
+                best_layer_weight = freezed[2 + 3 * min_index]
             if v2:
-                best_layer_weight = freezed[3*max_index]
+                best_layer_weight = freezed[3*min_index]
 
             new_model_children_list = []  # list for storing all layers for the new model
 
