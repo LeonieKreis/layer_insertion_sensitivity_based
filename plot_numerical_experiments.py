@@ -5,15 +5,15 @@ import torch
 import plot_helper
 from utils import ema_np
 
-k = 2
+k = 6
 
 std = False
-plot_b = False
+plot_b = True
 plot_error = True
 plot_area = True
 show_exit_flag = True
 log_scale = True
-smooth = 0.995
+smooth = 0.999
 
 if plot_b:
     labels = ['abs max', 'abs min', 'comparison']
