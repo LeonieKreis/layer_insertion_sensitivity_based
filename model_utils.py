@@ -203,6 +203,36 @@ def freeze_params(model, act_fun, old_model, _type='fwd', v2=False):
                     i += 1
                     continue
 
+    if _type == 'res1':
+        i = 0
+        no = number_of_parameters_of_model(model)
+        zero_fixpoint=True
+        is_weight = True
+        # Freezing and initialization for relu ###########################################################
+        if zero_fixpoint: 
+            for p in model.parameters():  # iterate over all model parameters
+                if i == 0 or i == 1:  # parameters of linear layer at beginning
+                    # do nothing
+                    i += 1
+                    continue
+                elif i == no-2 or i == no-1:  # parameters of linear layer at the end
+                    # do nothing
+                    i += 1
+                    continue
+                elif i%2==0 and i%4==2: # new weight 
+                    # first new layer is inserted directly after the first linear layer
+                    p.mul_(0.)
+                    freezed.append(p)
+                    i += 1
+                    continue
+                elif i%2==1 and i%4==3:
+                    p.mul_(0.)
+                    freezed.append(p)
+                    i += 1
+                    continue
+                else:
+                    i += 1
+                    continue
         # print(f'freezed parameter shapes{[f.shape for f in freezed]}')
     return freezed
 
