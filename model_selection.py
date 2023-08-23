@@ -291,9 +291,35 @@ def select_new_model(avg_grad_norm, freezed_norms, model, freezed, kwargs_net, m
         # find index which has maximum absolute mean norm entry #
         max_index = 0
 
-        if _type == 'res2':
-            print('not implemented yet!')
-            raise ValueError()
+        if _type == 'res1':
+            # weight parameter corresponding to max_index
+            best_layer_weight = freezed[2 * max_index]
+
+            new_model_children_list = []  # list for storing all layers for the new model
+
+            for child in model.children():  # iterate over all parameters of the eq-constr model
+                if isinstance(child, torch.nn.Flatten):  # handle flatten at beginning
+                    new_model_children_list.append(child)
+                    continue
+                # check only linear layers (no activation functions)
+                if isinstance(child, torch.nn.Linear):
+                    new_model_children_list.append(child)
+                    continue
+                if isinstance(child, kwargs_net['act_fun']):
+                    new_model_children_list.append(child)
+                    continue
+                if not _is_freezed(child.l1.weight, freezed):
+                    new_model_children_list.append(child)
+                    continue
+                if child.l1.weight is best_layer_weight:
+                    child_for_return=child
+                    new_model_children_list.append(child)
+                    continue
+            # minus one linear and actfun and flatten
+            hidden_layers_new = len(new_model_children_list)-3
+            new_kwargs_net = {'hidden_layers': hidden_layers_new,
+                              'dim_hidden_layers': hidden_layers_new*[kwargs_net['dim_hidden_layers'][0]],
+                              'act_fun': kwargs_net['act_fun'], 'type': _type}
 
         if _type == 'fwd':
             # weight parameter corresponding to max_index
@@ -370,9 +396,35 @@ def select_new_model(avg_grad_norm, freezed_norms, model, freezed, kwargs_net, m
         min_index = min(range(len(freezed_norms_only_relevant_weights)),
                         key=lambda k: freezed_norms_only_relevant_weights[k])
         
-        if _type == 'res2':
-            print('not implemented yet!')
-            raise ValueError()
+        if _type == 'res1':
+            # weight parameter corresponding to max_index
+            best_layer_weight = freezed[2 * min_index]
+
+            new_model_children_list = []  # list for storing all layers for the new model
+
+            for child in model.children():  # iterate over all parameters of the eq-constr model
+                if isinstance(child, torch.nn.Flatten):  # handle flatten at beginning
+                    new_model_children_list.append(child)
+                    continue
+                # check only linear layers (no activation functions)
+                if isinstance(child, torch.nn.Linear):
+                    new_model_children_list.append(child)
+                    continue
+                if isinstance(child, kwargs_net['act_fun']):
+                    new_model_children_list.append(child)
+                    continue
+                if not _is_freezed(child.l1.weight, freezed):
+                    new_model_children_list.append(child)
+                    continue
+                if child.l1.weight is best_layer_weight:
+                    child_for_return=child
+                    new_model_children_list.append(child)
+                    continue
+            # minus one linear and actfun and flatten
+            hidden_layers_new = len(new_model_children_list)-3
+            new_kwargs_net = {'hidden_layers': hidden_layers_new,
+                              'dim_hidden_layers': hidden_layers_new*[kwargs_net['dim_hidden_layers'][0]],
+                              'act_fun': kwargs_net['act_fun'], 'type': _type}
 
         if _type == 'fwd':
             # weight parameter corresponding to max_index
@@ -450,6 +502,11 @@ def select_new_model(avg_grad_norm, freezed_norms, model, freezed, kwargs_net, m
                 if k % 2 == 0:
                     avg_grad_norm_only_weights.append(avg_norm)
 
+        if _type == 'res1':
+            for k, avg_norm in enumerate(avg_grad_norm):
+                if k % 2 == 0:
+                    avg_grad_norm_only_weights.append(avg_norm)
+
         if _type == 'res2':
             for k, avg_norm in enumerate(avg_grad_norm):
                 v1 = not v2
@@ -460,9 +517,6 @@ def select_new_model(avg_grad_norm, freezed_norms, model, freezed, kwargs_net, m
                 if k % 3 == weight:
                     avg_grad_norm_only_weights.append(avg_norm)
 
-        if _type == 'res2':
-            print('not implemented yet!')
-            raise ValueError()
 
         avg = torch.mean(avg_grad_norm_only_weights)
         tau = 1.
@@ -478,6 +532,9 @@ def select_new_model(avg_grad_norm, freezed_norms, model, freezed, kwargs_net, m
             # no new layer is inserted
             best_layer_weight = None
             max_index = None
+
+        if len(max_indices)==1:
+            max_index = max_indices[0]
 
         if len(max_indices) > 1:  # TODO: handle insertion of multiple layers
             # for now we only choose the last one
@@ -515,6 +572,36 @@ def select_new_model(avg_grad_norm, freezed_norms, model, freezed, kwargs_net, m
                     new_kwargs_net['hidden_layers'] += 1
                     new_kwargs_net['dim_hidden_layers'].append(
                         new_model_children_list[k - 1].out_features)
+
+        if _type == 'res1':
+            # weight parameter corresponding to max_index
+            best_layer_weight = freezed[2 * max_index]
+
+            new_model_children_list = []  # list for storing all layers for the new model
+
+            for child in model.children():  # iterate over all parameters of the eq-constr model
+                if isinstance(child, torch.nn.Flatten):  # handle flatten at beginning
+                    new_model_children_list.append(child)
+                    continue
+                # check only linear layers (no activation functions)
+                if isinstance(child, torch.nn.Linear):
+                    new_model_children_list.append(child)
+                    continue
+                if isinstance(child, kwargs_net['act_fun']):
+                    new_model_children_list.append(child)
+                    continue
+                if not _is_freezed(child.l1.weight, freezed):
+                    new_model_children_list.append(child)
+                    continue
+                if child.l1.weight is best_layer_weight:
+                    child_for_return=child
+                    new_model_children_list.append(child)
+                    continue
+            # minus one linear and actfun and flatten
+            hidden_layers_new = len(new_model_children_list)-3
+            new_kwargs_net = {'hidden_layers': hidden_layers_new,
+                              'dim_hidden_layers': hidden_layers_new*[kwargs_net['dim_hidden_layers'][0]],
+                              'act_fun': kwargs_net['act_fun'], 'type': _type}
 
         if _type == 'res2':  # todo für v1 v2 handlen!
             child_for_return=0
