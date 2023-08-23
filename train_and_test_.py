@@ -96,13 +96,15 @@ def check_testerror(test_dataloader, model):
     '''
     correct = 0
     no_data = test_dataloader.batch_size
+    i=0
     with torch.no_grad():
         for X, y in test_dataloader:
             pred = model(X)
 
             correct += (pred.argmax(dim=1) == y).type(torch.float).sum().item()
-
-        correct /= no_data
+            i+=1
+        
+        correct = correct/(i*no_data)
         test_err = 100-100*correct
 
     return test_err
