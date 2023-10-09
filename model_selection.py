@@ -518,7 +518,7 @@ def select_new_model(avg_grad_norm, freezed_norms, model, freezed, kwargs_net, m
                     avg_grad_norm_only_weights.append(avg_norm)
 
 
-        avg = torch.mean(avg_grad_norm_only_weights)
+        avg = torch.mean(torch.tensor(avg_grad_norm_only_weights))
         tau = 1.
         good_new_layers = [
             x > tau*avg for x in freezed_norms_only_relevant_weights]
@@ -541,6 +541,7 @@ def select_new_model(avg_grad_norm, freezed_norms, model, freezed, kwargs_net, m
             max_index = max_indices[-1]
 
         if _type == 'fwd':
+            child_for_return = 0
             # weight parameter corresponding to max_index
             if best_layer_weight is not None:
                 best_layer_weight = freezed[2 * max_index]
@@ -574,6 +575,7 @@ def select_new_model(avg_grad_norm, freezed_norms, model, freezed, kwargs_net, m
                         new_model_children_list[k - 1].out_features)
 
         if _type == 'res1':
+            child_for_return = 0
             # weight parameter corresponding to max_index
             best_layer_weight = freezed[2 * max_index]
 
