@@ -8,7 +8,7 @@ def layer_insertion_loop(
         iters, epochs, model, kwargs_net, dim_in, dim_out, train_dataloader, test_dataloader, lr_init,
         wanted_test_error=0.5, mode='abs max', optimizer_type='SGD', lrschedule_type='StepLR', lrscheduler_args=None,
         check_testerror_between=None, decrease_after_li=1., print_param_flag=False, start_with_backtracking=None,
-        v2=False):
+        v2=False, save_grad_norms=False):
     '''
     implements training loop for (adaptive) layer insertion and minibatch SGD
 
@@ -34,6 +34,7 @@ def layer_insertion_loop(
             print_param_flag (default False): if True, prints the parameter gradients for the first 10 epochs
             start_with_backtracking (None or int): if None, there is  no backtracking performed, if it is an integer k ,
             then for the first k epochs, backtracking is performed after the layer insertion.
+            save_grad_norm: (bool) default False. If True, saves the averaged squared norm of the gradient in each step of the optimizer during training.
 
 
     Out:
@@ -52,6 +53,8 @@ def layer_insertion_loop(
         epochs = epochs + diff * [epochs[-1]]
 
     mb_losses_total = []
+    if save_grad_norms:
+        grad_norms_total = []
     test_err_list = []
     test_err_list2 = []
     lr = lr_init
@@ -75,13 +78,14 @@ def layer_insertion_loop(
                 optimizer, step_size=step_size, gamma=gamma)
 
         # train
-        mb_losses1, lr_end_lastloop, test_error_l2, exit_flag = train(
+        mb_losses1, lr_end_lastloop, test_error_l2, exit_flag, grad_norms = train(
             model, train_dataloader, epochs[k], optimizer, lrscheduler, wanted_testerror=wanted_test_error,
             start_with_backtracking=start_with_backtracking, check_testerror_between=check_testerror_between,
-            test_dataloader=test_dataloader, print_param_flag=print_param_flag)
+            test_dataloader=test_dataloader, print_param_flag=print_param_flag, save_grad_norms=save_grad_norms)
 
         # train classically until stalling
         mb_losses_total = mb_losses_total + mb_losses1
+        grad_norms_total = grad_norms_total + grad_norms
 
         test_err_list2 = test_err_list2+test_error_l2
 
@@ -135,14 +139,16 @@ def layer_insertion_loop(
         lrscheduler = torch.optim.lr_scheduler.StepLR(
             optimizer, step_size=step_size, gamma=gamma)
 
-    mb_losseslast, lr, test_error_l2, exit_flag = train(model, train_dataloader, epochs[k+1], optimizer, lrscheduler,
+    mb_losseslast, lr, test_error_l2, exit_flag, grad_norms = train(model, train_dataloader, epochs[k+1], optimizer, lrscheduler,
                                              wanted_testerror=wanted_test_error,
                                              start_with_backtracking=start_with_backtracking,
                                              check_testerror_between=check_testerror_between,
-                                             test_dataloader=test_dataloader, print_param_flag=print_param_flag)
+                                             test_dataloader=test_dataloader, print_param_flag=print_param_flag,
+                                             save_grad_norms=save_grad_norms)
     # after the last li train again
 
     mb_losses_total = mb_losses_total + mb_losseslast
+    grad_norms_total = grad_norms_total + grad_norms
 
     test_err_list2 = test_err_list2 + test_error_l2
     curr_test_err = check_testerror(test_dataloader, model)
@@ -153,4 +159,4 @@ def layer_insertion_loop(
     print(f'Test error of loop {k+2} is {curr_test_err}!')
     print(f'The final model has the architecture: {model}')
 
-    return model, mb_losses_total, test_err_list, test_err_list2, exit_flag 
+    return model, mb_losses_total, test_err_list, test_err_list2, exit_flag, grad_norms_total

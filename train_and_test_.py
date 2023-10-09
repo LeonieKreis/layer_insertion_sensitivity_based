@@ -6,7 +6,8 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
           start_with_backtracking=None,
           check_testerror_between=None,
           test_dataloader=None,
-          print_param_flag=False):
+          print_param_flag=False,
+          save_grad_norms=False):
     '''
     implements (optionally) frozen-parameter constrained training for a feedforward net.
 
@@ -23,6 +24,7 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
             If an integer is specified, e.g. k=1, the after k epochs, the testerror is checked during training on one model.
         test_dataloader: iterable from pytorch containing the test data
         print_param_flag (default False): if True, prints the parameter gradients for the first 10 epochs
+        save_grad_norm: (bool) default False. If True, saves the averaged squared norm of the gradient in each step.
 
     Out:
         mb_losses (list): list of all minibatch losses during training
@@ -31,6 +33,7 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
         exit_flag: 0 or 1. 1 indicates that wanted testerror was reached during training
 
     '''
+    grad_norms = []
     exit_flag = 0
     if start_with_backtracking is not None:
         # no of epochs in the beginning where we use backtracking
@@ -46,6 +49,13 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
             model.zero_grad()
             loss = torch.nn.CrossEntropyLoss()(model(X), y)
             loss.backward()
+
+            if save_grad_norms:
+                norm = 0
+                for p in model.parameters():
+                    norm += torch.square(p.grad).sum()
+                print(norm)
+                grad_norms.append(norm)
 
             # ggf print loss
             if batch == 0:
@@ -76,9 +86,11 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
                 print(f'(dataset)error at epoch {e} is {test_err}')
                 if test_err <= wanted_testerror:
                     exit_flag = 1
-                    return mb_losses, optimizer.param_groups[0]['lr'], test_err_list, exit_flag
+                    return mb_losses, optimizer.param_groups[0]['lr'], test_err_list, exit_flag, grad_norms
+                    
 
-    return mb_losses, optimizer.param_groups[0]['lr'], test_err_list, exit_flag
+    return mb_losses, optimizer.param_groups[0]['lr'], test_err_list, exit_flag, grad_norms
+    
 
 
 def check_testerror(test_dataloader, model):
@@ -96,15 +108,15 @@ def check_testerror(test_dataloader, model):
     '''
     correct = 0
     no_data = test_dataloader.batch_size
-    i=0
+    i = 0
     with torch.no_grad():
         for X, y in test_dataloader:
             pred = model(X)
 
             correct += (pred.argmax(dim=1) == y).type(torch.float).sum().item()
-            i+=1
+            i += 1
         
-        correct = correct/(i*no_data)
-        test_err = 100-100*correct
+        correct = correct / (i * no_data)
+        test_err = 100 - 100 * correct
 
     return test_err
