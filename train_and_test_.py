@@ -54,7 +54,7 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
                 norm = 0
                 for p in model.parameters():
                     norm += torch.square(p.grad).sum()
-                print(norm)
+                #print(norm)
                 grad_norms.append(norm)
 
             # ggf print loss

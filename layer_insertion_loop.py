@@ -96,7 +96,7 @@ def layer_insertion_loop(
         if curr_test_err <= wanted_test_error:
             exit_flag = 1
             print(f'The final model has the architecture: {model}')
-            return model, mb_losses_total, test_err_list, test_err_list2, exit_flag
+            return model, mb_losses_total, test_err_list, test_err_list2, exit_flag, grad_norms_total
 
         # build partially frozen net for the shadow prices
         # build temporary net for the equality constrained training in next step
