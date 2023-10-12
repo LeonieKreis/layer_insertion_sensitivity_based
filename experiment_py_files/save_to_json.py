@@ -29,7 +29,7 @@ def write_losses(path, losses, max_length, structures=None, errors=None, interva
 
     number = len(data.keys())
 
-    if exit is None:
+    if exit_flag is None:
         if structures is None and errors is None:
             data[str(number)] = {'losses': losses}
         if structures is not None and errors is None:
