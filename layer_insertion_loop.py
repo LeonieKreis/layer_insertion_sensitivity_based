@@ -53,8 +53,7 @@ def layer_insertion_loop(
         epochs = epochs + diff * [epochs[-1]]
 
     mb_losses_total = []
-    if save_grad_norms:
-        grad_norms_total = []
+    grad_norms_total = []
     test_err_list = []
     test_err_list2 = []
     lr = lr_init
