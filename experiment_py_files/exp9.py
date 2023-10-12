@@ -22,7 +22,7 @@ from save_to_json import write_losses
 # for checking the progress of the training in the terminal, use the bash command: jp length filename.json
 # to see how many runs are already saved
 
-k = 7
+k = 9
 
 # seed
 s=2
@@ -245,6 +245,8 @@ for i in range(no_of_initializations):
     if _type == 'res1':
         model_classical = one_weight_resnet(
             dim_in, dim_out, **kwargs_net_classical)
+        
+    torch.nn.utils.vector_to_parameters(param_init, model_classical.parameters())
 
     # build optimizer and lr scheduler for the classical training:
     # build optimizer

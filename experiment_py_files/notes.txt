@@ -1,0 +1,8 @@
+7: GD with MNIST and fwd width 100,50, comparison to training on the original net(= the smallest one) not same paraminit
+7_5 ipynb where even if a layer is inserted it behaves the same as the further training on the original net
+8: as 7 but compared to resulting 100,100,50 fwd net
+9: as 7 but with same inits of class and li
+
+TODOs:
+- same as 7 but with same initialization
+- 7 and 8 with minibatch- abs min abs max dep on lr unterschiedlich
