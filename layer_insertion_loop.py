@@ -1,4 +1,7 @@
 import torch
+import sys
+
+from utils import get_timestamp
 from train_and_test_ import check_testerror, train
 from model_selection import tmp_net, select_new_model
 from calculate_shadow_prices import calculate_shadowprices_minibatch
@@ -8,7 +11,7 @@ def layer_insertion_loop(
         iters, epochs, model, kwargs_net, dim_in, dim_out, train_dataloader, test_dataloader, lr_init,
         wanted_test_error=0.5, mode='abs max', optimizer_type='SGD', lrschedule_type='StepLR', lrscheduler_args=None,
         check_testerror_between=None, decrease_after_li=1., print_param_flag=False, start_with_backtracking=None,
-        v2=False, save_grad_norms=False):
+        v2=False, save_grad_norms=False, use_adaptive_lr=False):
     '''
     implements training loop for (adaptive) layer insertion and minibatch SGD
 
@@ -57,7 +60,7 @@ def layer_insertion_loop(
     test_err_list = []
     test_err_list2 = []
     lr = lr_init
-    exit_flag = 0 # means that wanted testerror is not attained
+    exit_flag = 0  # means that wanted testerror is not attained
 
     for k in range(iters):
         # iterate on current net
@@ -71,20 +74,33 @@ def layer_insertion_loop(
 
         # build lr scheduler
         if lrschedule_type == 'StepLR':
-            step_size = lrscheduler_args['step_size']
+            if isinstance(lrscheduler_args['step_size'],list):
+                step_size = lrscheduler_args['step_size'][k]
+            else:
+                step_size = lrscheduler_args['step_size']
             gamma = lrscheduler_args['gamma']
             lrscheduler = torch.optim.lr_scheduler.StepLR(
+                optimizer, step_size=step_size, gamma=gamma)
+            
+        if lrschedule_type == 'MultiStepLR':
+            if isinstance(lrscheduler_args['step_size'][0],list):
+                step_size = lrscheduler_args['step_size'][k]
+            else:
+                step_size = lrscheduler_args['step_size']
+            gamma = lrscheduler_args['gamma']
+            lrscheduler = torch.optim.lr_scheduler.MultiStepLR(
                 optimizer, step_size=step_size, gamma=gamma)
 
         # train
         mb_losses1, lr_end_lastloop, test_error_l2, exit_flag, grad_norms = train(
             model, train_dataloader, epochs[k], optimizer, lrscheduler, wanted_testerror=wanted_test_error,
             start_with_backtracking=start_with_backtracking, check_testerror_between=check_testerror_between,
-            test_dataloader=test_dataloader, print_param_flag=print_param_flag, save_grad_norms=save_grad_norms)
+            test_dataloader=test_dataloader, print_param_flag=print_param_flag, save_grad_norms=save_grad_norms, use_adaptive_lr=use_adaptive_lr)
 
         # train classically until stalling
         mb_losses_total = mb_losses_total + mb_losses1
-        grad_norms_total = grad_norms_total + grad_norms
+        # grad_norms_total = grad_norms_total + grad_norms
+        grad_norms_total.append(grad_norms)
 
         test_err_list2 = test_err_list2+test_error_l2
 
@@ -114,13 +130,29 @@ def layer_insertion_loop(
             train_dataloader, model_tmp, freezed)
 
         # mb_losses_total = mb_losses_total+mb_losses2
-        mb_losses_total = mb_losses_total + [sum(mb_losses2)/len(mb_losses2)]
+        # mb_losses_total = mb_losses_total + [sum(mb_losses2)/len(mb_losses2)] # uncommenting this gives a double iterate
 
         # select new model based on the shadow prices
         # insert one frozen layer and unfreeze, delete other frozen layers
         model, kwargs_net, new_child = select_new_model(
             free_norms, freezed_norms, model=model_tmp, freezed=freezed, kwargs_net=kwargs_net_tmp, mode=mode,
             _type=kwargs_net['type'], v2=v2)
+
+        if save_grad_norms:
+            values_at_li = []
+            for p in model.parameters():
+                if p.requires_grad:
+                    values_at_li.append(torch.linalg.norm(p.data))
+                    print(values_at_li)
+
+        original_stdout = sys.stdout
+        path = f'val_at_li{get_timestamp()}.txt'
+        with open(path, 'w') as f:
+            sys.stdout = f
+            print(
+                f'norm of values of parameters (parameter-wise) at layer insertion: {values_at_li}')
+            # Reset the standard output
+            sys.stdout = original_stdout
 
         lr = decrease_after_li * lr_end_lastloop  # decrease lr for next loop
 
@@ -139,15 +171,16 @@ def layer_insertion_loop(
             optimizer, step_size=step_size, gamma=gamma)
 
     mb_losseslast, lr, test_error_l2, exit_flag, grad_norms = train(model, train_dataloader, epochs[k+1], optimizer, lrscheduler,
-                                             wanted_testerror=wanted_test_error,
-                                             start_with_backtracking=start_with_backtracking,
-                                             check_testerror_between=check_testerror_between,
-                                             test_dataloader=test_dataloader, print_param_flag=print_param_flag,
-                                             save_grad_norms=save_grad_norms)
+                                                                    wanted_testerror=wanted_test_error,
+                                                                    start_with_backtracking=start_with_backtracking,
+                                                                    check_testerror_between=check_testerror_between,
+                                                                    test_dataloader=test_dataloader, print_param_flag=print_param_flag,
+                                                                    save_grad_norms=save_grad_norms,use_adaptive_lr=use_adaptive_lr)
     # after the last li train again
 
     mb_losses_total = mb_losses_total + mb_losseslast
-    grad_norms_total = grad_norms_total + grad_norms
+    # grad_norms_total = grad_norms_total + grad_norms
+    grad_norms_total.append(grad_norms)
 
     test_err_list2 = test_err_list2 + test_error_l2
     curr_test_err = check_testerror(test_dataloader, model)
@@ -157,5 +190,7 @@ def layer_insertion_loop(
 
     print(f'Test error of loop {k+2} is {curr_test_err}!')
     print(f'The final model has the architecture: {model}')
+    print(
+        f'norm of values of parameters (parameter-wise) at layer insertion: {values_at_li}')
 
     return model, mb_losses_total, test_err_list, test_err_list2, exit_flag, grad_norms_total
