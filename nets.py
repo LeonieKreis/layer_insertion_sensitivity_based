@@ -1,7 +1,7 @@
 from torch import nn
 
 
-def feed_forward(dim_in, dim_out, hidden_layers=1, dim_hidden_layers=3, act_fun=nn.ReLU, type='fwd'):
+def feed_forward(dim_in, dim_out, hidden_layers=1, dim_hidden_layers=3, act_fun=nn.ReLU, type='fwd', flatten = True):
     '''
     Generates feedforward model.
 
@@ -16,13 +16,16 @@ def feed_forward(dim_in, dim_out, hidden_layers=1, dim_hidden_layers=3, act_fun=
     '''
     modules = []
     if hidden_layers == 0:  # if no hidden layers are specified, the net is a linear model
-        return nn.Sequential(nn.Flatten(), nn.Linear(dim_in, dim_out))
+        if flatten:
+            return nn.Sequential(nn.Flatten(), nn.Linear(dim_in, dim_out))
+        else: return nn.Sequential(nn.Linear(dim_in, dim_out))
     if isinstance(dim_hidden_layers, int):  # all hidden layers have the same width
         dim_hidden_layers = [dim_hidden_layers] * hidden_layers
     # the hidden layers have different widths
     if isinstance(dim_hidden_layers, (list, tuple)):
         dim_old = dim_in
-        modules.append(nn.Flatten())
+        if flatten:
+            modules.append(nn.Flatten())
         for dim in dim_hidden_layers:
             dim_curr = dim
             modules.append(
@@ -56,7 +59,7 @@ class ResBlock1(nn.Module):
         return input
 
 
-def two_weight_resnet(dim_in, dim_out, hidden_layers=1, dim_hidden_layers=3, act_fun=nn.ReLU, type='res2'):
+def two_weight_resnet(dim_in, dim_out, hidden_layers=1, dim_hidden_layers=3, act_fun=nn.ReLU, type='res2', flatten=True):
     '''
     Generates resnet with two weights- model.
 
@@ -71,16 +74,24 @@ def two_weight_resnet(dim_in, dim_out, hidden_layers=1, dim_hidden_layers=3, act
     '''
     modules = []
     if hidden_layers == 0:  # if no hidden layers are specified, the net is a linear model
-        return nn.Sequential(nn.Flatten(), nn.Linear(dim_in, dim_out))
+        if flatten:
+            return nn.Sequential(nn.Flatten(), nn.Linear(dim_in, dim_out))
+        else:
+            return nn.Sequential(nn.Linear(dim_in, dim_out))
     if hidden_layers == 1:
-        return (nn.Sequential(nn.Flatten(), nn.Linear(dim_in, dim_hidden_layers), act_fun(),
+        if flatten:
+            return (nn.Sequential( nn.Linear(dim_in, dim_hidden_layers), act_fun(),
+                              nn.Linear(dim_hidden_layers, dim_out)))
+        else:
+            return (nn.Sequential(nn.Flatten(), nn.Linear(dim_in, dim_hidden_layers), act_fun(),
                               nn.Linear(dim_hidden_layers, dim_out)))
     if isinstance(dim_hidden_layers, int):  # all hidden layers have the same width
         dim_hidden_layers = [dim_hidden_layers] * hidden_layers
     # the hidden layers have the same widths
     if isinstance(dim_hidden_layers, (list, tuple)):
         dim_old = dim_in
-        modules.append(nn.Flatten())
+        if flatten:
+            modules.append(nn.Flatten())
         for k, dim in enumerate(dim_hidden_layers):
             dim_curr = dim
             if k == 0:
