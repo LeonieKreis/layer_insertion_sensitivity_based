@@ -7,7 +7,8 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
           check_testerror_between=None,
           test_dataloader=None,
           print_param_flag=False,
-          save_grad_norms=False):
+          save_grad_norms=False,
+          use_adaptive_lr=False):
     '''
     implements (optionally) frozen-parameter constrained training for a feedforward net.
 
@@ -34,6 +35,9 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
 
     '''
     grad_norms = []
+    grad_norms_layerwise = []
+    for p in model.parameters():
+        grad_norms_layerwise.append([])
     exit_flag = 0
     if start_with_backtracking is not None:
         # no of epochs in the beginning where we use backtracking
@@ -42,19 +46,32 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
     mb_losses = []
     test_err_list = []
 
+    if use_adaptive_lr:
+        omega = 10
+        discont = .995
+        omega_min = 1e-5
+
     # loop over epochs
     for e in range(epochs):
         # print(f'epoch number {e+1}')
         for batch, (X, y) in enumerate(train_dataloader):
+            #print(X.shape)
+            #print(y.shape)
             model.zero_grad()
             loss = torch.nn.CrossEntropyLoss()(model(X), y)
             loss.backward()
 
             if save_grad_norms:
                 norm = 0
+                layer = 0
+                lr = optimizer.param_groups[0]['lr']
+                for p in model.parameters():
+                    grad_norms_layerwise[layer].append(
+                        lr*torch.square(p.grad).sum().numpy())
+                    layer += 1
                 for p in model.parameters():
                     norm += torch.square(p.grad).sum()
-                #print(norm)
+                # print(norm)
                 grad_norms.append(norm)
 
             # ggf print loss
@@ -77,6 +94,22 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
 
             optimizer.step()
 
+            if use_adaptive_lr: ##### new beginning
+                    with torch.no_grad():
+                        step_norm_sq=torch.tensor(0.)
+                        for p in model.parameters():
+                            step_norm_sq.add_((p.grad ** 2).sum())
+                        loss_new = torch.nn.CrossEntropyLoss()(model(X), y)#loss_fn(model(data_x[batch]), data_y[batch])
+
+                        omega_new = 2 * (loss_new - loss + lr *
+                                        step_norm_sq) / (lr ** 2 * step_norm_sq)
+                        if omega_new < omega_min:
+                            omega_new = omega_min
+                        omega = discont * omega + (1 - discont) * omega_new
+                        lr = discont * lr + (1 - discont) * 1/omega ################ new end
+                        optimizer.param_groups[0]['lr'] = lr
+
+
         scheduler.step()
 
         if check_testerror_between is not None:
@@ -87,10 +120,8 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
                 if test_err <= wanted_testerror:
                     exit_flag = 1
                     return mb_losses, optimizer.param_groups[0]['lr'], test_err_list, exit_flag, grad_norms
-                    
 
-    return mb_losses, optimizer.param_groups[0]['lr'], test_err_list, exit_flag, grad_norms
-    
+    return mb_losses, optimizer.param_groups[0]['lr'], test_err_list, exit_flag, grad_norms_layerwise
 
 
 def check_testerror(test_dataloader, model):
@@ -107,15 +138,17 @@ def check_testerror(test_dataloader, model):
         test_err (float): test error between 100 and 0.
     '''
     correct = 0
-    no_data = test_dataloader.batch_size
+    #no_data = test_dataloader.batch_size
     i = 0
     with torch.no_grad():
         for X, y in test_dataloader:
+            no_data = X.shape[0]
             pred = model(X)
 
+            # dim=1 for image class, 0 for spirals
             correct += (pred.argmax(dim=1) == y).type(torch.float).sum().item()
             i += 1
-        
+
         correct = correct / (i * no_data)
         test_err = 100 - 100 * correct
 
