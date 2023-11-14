@@ -22,7 +22,7 @@ from save_to_json import write_losses
 # for checking the progress of the training in the terminal, use the bash command: jp length filename.json
 # to see how many runs are already saved
 
-k = 9
+k = 10
 
 # seed
 s=2
@@ -34,19 +34,19 @@ torch.set_num_threads(8)
 
 # Define hyperparameters
 
-hidden_layers_start = 2
-fix_width = [100,50]
+hidden_layers_start = 4
+fix_width = [100,100,50,50]
 no_iters = 1
 lr_decrease_after_li = 0.8
-epochs = [70,70]  # [10, 5, 5]
+epochs = [1,10]  # [10, 5, 5]
 wanted_testerror = 1.
 _type = 'fwd'
 act_fun = nn.ReLU
 interval_testerror = 1
 
-batch_size = 60000 #for full batch
+batch_size = 20 #for full batch
 
-lr_init = 1e-0
+lr_init = 1e-3
 optimizer_type = 'SGD'
 lrscheduler_type = 'StepLR'
 lrscheduler_args = {'step_size': 40,
@@ -59,7 +59,7 @@ lr_init_classical = lr_init
 lrscheduler_args_classical = {'step_size': 40,
                               'gamma': 0.1}
 hidden_layers_classical = hidden_layers_start#no_iters + hidden_layers_start
-fix_width_classical = [100,50]
+fix_width_classical = [100,100,50,50]
 
 
 # get data

@@ -1,6 +1,7 @@
 #  ########## necessary imports ###############################################
 import torch
 import random
+import time
 import os
 import copy
 import sys
@@ -22,7 +23,7 @@ from save_to_json import write_losses
 # for checking the progress of the training in the terminal, use the bash command: jp length filename.json
 # to see how many runs are already saved
 
-k = 9
+k = 21
 
 # seed
 s=2
@@ -38,13 +39,14 @@ hidden_layers_start = 2
 fix_width = [100,50]
 no_iters = 1
 lr_decrease_after_li = 0.8
-epochs = [70,70]  # [10, 5, 5]
+epochs = [80,60]  # [10, 5, 5]
 wanted_testerror = 1.
 _type = 'fwd'
 act_fun = nn.ReLU
 interval_testerror = 1
 
 batch_size = 60000 #for full batch
+save_grad_norms= True
 
 lr_init = 1e-0
 optimizer_type = 'SGD'
@@ -59,7 +61,7 @@ lr_init_classical = lr_init
 lrscheduler_args_classical = {'step_size': 40,
                               'gamma': 0.1}
 hidden_layers_classical = hidden_layers_start#no_iters + hidden_layers_start
-fix_width_classical = [100,50]
+fix_width_classical = [100,50] 
 
 
 # get data
@@ -112,7 +114,7 @@ dim_out = 10
 #     'type': _typeexperiment_py_files/exp2.py
 # }
 
-# classical net
+# classical net small
 kwargs_net_classical = {
     'hidden_layers': hidden_layers_classical,
     'dim_hidden_layers': fix_width_classical,
@@ -120,14 +122,24 @@ kwargs_net_classical = {
     'type': _type
 }
 
+# classical net small
+kwargs_net_classical2 = {
+    'hidden_layers': hidden_layers_classical+1,
+    'dim_hidden_layers': fix_width_classical,
+    'act_fun': act_fun,
+    'type': _type
+}
+
+
 # determine which trainings are run
 T1 = True
 T2 = True
 T3 = True
+T4 = True
 
 # define no of training run instances
 
-no_of_initializations = 30  # 50
+no_of_initializations = 1  # 50
 
 # set up empty lists for saving the observed quantities
 # (besides the save to the json file)
@@ -135,6 +147,7 @@ no_of_initializations = 30  # 50
 final_testerror1 = []
 final_testerror2 = []
 final_testerror3 = []
+final_testerror4 = []
 
 # declare path where json files are saved
 
@@ -147,6 +160,7 @@ if os.path.isfile(path1):
 for i in range(no_of_initializations):
     print(f'loop number {i}!')
 
+    tic1 = time.time()
     # build net for ali 1
     # build model
     if _type == 'fwd':
@@ -183,17 +197,25 @@ for i in range(no_of_initializations):
             print_param_flag=False,
             start_with_backtracking=None,
             v2=False,
-            save_grad_norms=False
+            save_grad_norms=save_grad_norms
         )
         
+        toc1 = time.time()
+
+
+        print(f'Time for T1: {toc1-tic1}')
+
+        #print(grad_norm1)
         # save losses1 and final accuracy1
         write_losses(path1,
                      mb_losses1, max_length, end_list, test_errors1,
-                     interval_testerror=interval_testerror, exit_flag=exit_flag1, its_per_epoch=no_steps_per_epoch)    # save losses3
+                     interval_testerror=interval_testerror, exit_flag=exit_flag1,grad_norms = grad_norm1, its_per_epoch=no_steps_per_epoch)    # save losses3
 
         # full_list_of_losses_1.append(mb_losses)
         final_testerror1.append(test_errors_short1[-1])
 
+
+    tic2 = time.time()
     # build net for ali 2 and initalize with the parameters from ali 1
     if _type == 'fwd':
         model_init2 = feed_forward(dim_in, dim_out, **kwargs_net)
@@ -227,17 +249,24 @@ for i in range(no_of_initializations):
             print_param_flag=False,
             start_with_backtracking=None,
             v2=False,
-            save_grad_norms=False
+            save_grad_norms=save_grad_norms
         )
+
+        toc2 = time.time()
+
+        print(f'Time for T2: {toc2-tic2}')
 
         # save losses2
         write_losses(f'results_data/Exp{k}_2.json',
-                     mb_losses2, max_length, end_list, test_errors2, interval_testerror=interval_testerror, exit_flag=exit_flag2,
+                     mb_losses2, max_length, end_list, test_errors2, interval_testerror=interval_testerror, exit_flag=exit_flag2, grad_norms = grad_norm2,
                      its_per_epoch=no_steps_per_epoch)
         # full_list_of_losses_2.append(mb_losses2)
         final_testerror2.append(test_errors_short2[-1])
 
-    # build net for classical
+
+
+    tic3 = time.time()
+    # build net for classical small
     if _type == 'fwd':
         model_classical = feed_forward(dim_in, dim_out, **kwargs_net_classical)
     if _type == 'res2':
@@ -262,8 +291,8 @@ for i in range(no_of_initializations):
         lrscheduler_classical = torch.optim.lr_scheduler.StepLR(
             optimizer_classical, step_size=step_size, gamma=gamma)
 
-    # train classical
-    print('classical training!')
+    # train classical  small
+    print('classical training small!')
     if T3:
         print('training classically on model', model_classical)
         mblosses_classical, lr_end, test_error_classical, exit_flag3, grad_norm3 = train(model_classical,
@@ -276,17 +305,85 @@ for i in range(no_of_initializations):
                                                                  check_testerror_between=interval_testerror,
                                                                  test_dataloader=test_dataloader,
                                                                  print_param_flag=False,
-                                                                 save_grad_norms=False
+                                                                 save_grad_norms=save_grad_norms
                                                                  )
+
+
+        toc3 = time.time()
+
+        print(f'Time for T3: {toc3-tic3}')
 
         # save losses3
         write_losses(f'results_data/Exp{k}_3.json', mblosses_classical, max_length, structures=[
                     epochs_classical], errors=test_error_classical,
-                    interval_testerror=interval_testerror, exit_flag=exit_flag3,
+                    interval_testerror=interval_testerror, exit_flag=exit_flag3, grad_norms = grad_norm3,
                     its_per_epoch=no_steps_per_epoch)
 
         # full_list_of_losses_3.append(mb_losses_comp)
         final_testerror3.append(check_testerror(
             test_dataloader, model_classical))
-        print(f'test error of classical training {final_testerror3[-1]}')
+        print(f'test error of classical training small {final_testerror3[-1]}')
+    # next step in loop
+
+
+
+    tic4 = time.time()
+# build net for classical big
+    if _type == 'fwd':
+        model_classical2 = feed_forward(dim_in, dim_out, **kwargs_net_classical2)
+    if _type == 'res2':
+        model_classical2 = two_weight_resnet(
+            dim_in, dim_out, **kwargs_net_classical2)
+    if _type == 'res1':
+        model_classical2 = one_weight_resnet(
+            dim_in, dim_out, **kwargs_net_classical2)
+        
+    
+
+    # build optimizer and lr scheduler for the classical training:
+    # build optimizer
+    if optimizer_type == 'SGD':
+        optimizer_classical2 = torch.optim.SGD(
+            model_classical2.parameters(), lr_init_classical)
+
+    # build lr scheduler
+    if lrscheduler_type == 'StepLR':
+        step_size2 = lrscheduler_args_classical['step_size']
+        gamma2 = lrscheduler_args_classical['gamma']
+        lrscheduler_classical2 = torch.optim.lr_scheduler.StepLR(
+            optimizer_classical2, step_size=step_size2, gamma=gamma2)
+
+    # train classical  small
+    print('classical training big!')
+    if T4:
+        print('training classically on model', model_classical2)
+        mblosses_classical2, lr_end2, test_error_classical2, exit_flag4, grad_norm4 = train(model_classical2,
+                                                                 train_dataloader=train_dataloader,
+                                                                 epochs=epochs_classical,
+                                                                 optimizer=optimizer_classical2,
+                                                                 scheduler=lrscheduler_classical2,
+                                                                 wanted_testerror=wanted_testerror,
+                                                                 start_with_backtracking=None,
+                                                                 check_testerror_between=interval_testerror,
+                                                                 test_dataloader=test_dataloader,
+                                                                 print_param_flag=False,
+                                                                 save_grad_norms=save_grad_norms
+                                                                 )
+        
+
+        toc4 = time.time()
+
+        print(f'Time for T4: {toc4-tic4}')
+
+        # save losses3
+        write_losses(f'results_data/Exp{k}_4.json', mblosses_classical2, max_length, structures=[
+                    epochs_classical], errors=test_error_classical2,
+                    interval_testerror=interval_testerror, exit_flag=exit_flag4,
+                    grad_norms= grad_norm4,
+                    its_per_epoch=no_steps_per_epoch)
+
+        # full_list_of_losses_3.append(mb_losses_comp)
+        final_testerror4.append(check_testerror(
+            test_dataloader, model_classical2))
+        print(f'test error of classical training big {final_testerror4[-1]}')
     # next step in loop
