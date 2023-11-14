@@ -170,6 +170,8 @@ def select_new_model(avg_grad_norm, freezed_norms, model, freezed, kwargs_net, m
             if k % 3 == weight:
                 freezed_norms_only_relevant_weights.append(freezed_norm)
 
+    print(f'the averaged shadow prices  of all available positions: {freezed_norms_only_relevant_weights}')
+
     # select layer based on different criteria ########################################################################
     if mode == 'abs max':
         # find index which has maximum absolute mean norm entry #
