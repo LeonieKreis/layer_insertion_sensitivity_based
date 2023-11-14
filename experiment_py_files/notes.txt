@@ -1,8 +1,42 @@
 7: GD with MNIST and fwd width 100,50, comparison to training on the original net(= the smallest one) not same paraminit
 7_5 ipynb where even if a layer is inserted it behaves the same as the further training on the original net
 8: as 7 but compared to resulting 100,100,50 fwd net
-9: as 7 but with same inits of class and li
+9: as 7 but with same inits of class and li, gut bei 14
+9_5 fwd unterschied absmin abs max
+9_55 wie 9_5 nur mit tanhlushifted c2 akt fun, did not work, no difference
+10 fwd relu bs 20
+11 res2 tanh  4 hl with width 100. better als small not better than large no diff min max
+12 wie 11 nur mit start 3 hl a 50
+13: wie 8/9 nur mit c2 relu approx, gut bei 8
+14: wie 12 nur mit kleinerem netz weite 70
+14 alt: wie 14 nur absmin vs absmax. im mittel ist unseres minimal besser
+15: wie 14 nur mit li nach schon 20 updates
+
+ab 16 sind gradienten layerweise dabei!!
+
+16: res2 with li at 20
+17:             at 10
+18:             at 30
+19:             at 80
+20: nur ein run wie 9/8 für cpu times
+21: 1 run wie 8/9 nur li at 80,
+
+22: li at 40, wie 16-19
+23: li at 50
+24: li at 60
+25: li at 70
+
+26: resnet with width 25
 
 TODOs:
-- same as 7 but with same initialization
+- absmax absmin gut und schlecht
 - 7 and 8 with minibatch- abs min abs max dep on lr unterschiedlich
+
+
+0: mb absmax faster but same in the end 10 testerror end kein expfile!
+1: mb but classical is better, fwd relu
+2: mb schaut gut aus. kein abs min end test err 2, res2 relu
+3: as 2, fwd relu
+4: as 3 but with absmin no big diff, fwd relu
+5: bad (probably bad GD) fwd relu gd
+6: as 3 absmin slightly better fwd relu bs10
