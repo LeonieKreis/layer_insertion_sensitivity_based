@@ -119,7 +119,7 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
                 print(f'(dataset)error at epoch {e} is {test_err}')
                 if test_err <= wanted_testerror:
                     exit_flag = 1
-                    return mb_losses, optimizer.param_groups[0]['lr'], test_err_list, exit_flag, grad_norms
+                    return mb_losses, optimizer.param_groups[0]['lr'], test_err_list, exit_flag, grad_norms_layerwise
 
     return mb_losses, optimizer.param_groups[0]['lr'], test_err_list, exit_flag, grad_norms_layerwise
 
