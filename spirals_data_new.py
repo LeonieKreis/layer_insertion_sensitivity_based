@@ -189,7 +189,7 @@ def gen_spiral_dataset(batchsize,N, r0, circles):
     K = 2
     number = N
 
-    def spiral_xy(i,spiral_num, number, circles = 1, r0 = 0 ):
+    def spiral_xy(i,spiral_num, number, circles = circles, r0 = r0 ):
         '''
         '''
         phi = torch.tensor(0.) # start value of phi
@@ -208,7 +208,7 @@ def gen_spiral_dataset(batchsize,N, r0, circles):
 
 
     def spiral(spiral_num):
-        return [spiral_xy(i, spiral_num,number=N, circles=2, r0=0.1) for i in range(N)]
+        return [spiral_xy(i, spiral_num,number=N, circles=circles, r0=r0) for i in range(N)]
 
 
     X = np.zeros((N*K, D))
