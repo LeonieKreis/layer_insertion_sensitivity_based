@@ -89,7 +89,7 @@ def layer_insertion_loop(
                 step_size = lrscheduler_args['step_size']
             gamma = lrscheduler_args['gamma']
             lrscheduler = torch.optim.lr_scheduler.MultiStepLR(
-                optimizer, step_size=step_size, gamma=gamma)
+                optimizer, milestones=step_size, gamma=gamma)
 
         # train
         mb_losses1, lr_end_lastloop, test_error_l2, exit_flag, grad_norms = train(
@@ -145,14 +145,14 @@ def layer_insertion_loop(
                     values_at_li.append(torch.linalg.norm(p.data))
                     print(values_at_li)
 
-        original_stdout = sys.stdout
-        path = f'val_at_li{get_timestamp()}.txt'
-        with open(path, 'w') as f:
-            sys.stdout = f
-            print(
-                f'norm of values of parameters (parameter-wise) at layer insertion: {values_at_li}')
-            # Reset the standard output
-            sys.stdout = original_stdout
+            original_stdout = sys.stdout
+            path = f'val_at_li{get_timestamp()}.txt'
+            with open(path, 'w') as f:
+                sys.stdout = f
+                print(
+                    f'norm of values of parameters (parameter-wise) at layer insertion: {values_at_li}')
+                # Reset the standard output
+                sys.stdout = original_stdout
 
         lr = decrease_after_li * lr_end_lastloop  # decrease lr for next loop
 
@@ -169,6 +169,15 @@ def layer_insertion_loop(
         gamma = lrscheduler_args['gamma']
         lrscheduler = torch.optim.lr_scheduler.StepLR(
             optimizer, step_size=step_size, gamma=gamma)
+        
+    if lrschedule_type == 'MultiStepLR':
+        if isinstance(lrscheduler_args['step_size'][0],list):
+            step_size = lrscheduler_args['step_size'][k+1]
+        else:
+            step_size = lrscheduler_args['step_size']
+        gamma = lrscheduler_args['gamma']
+        lrscheduler = torch.optim.lr_scheduler.MultiStepLR(
+            optimizer, milestones=step_size, gamma=gamma)
 
     mb_losseslast, lr, test_error_l2, exit_flag, grad_norms = train(model, train_dataloader, epochs[k+1], optimizer, lrscheduler,
                                                                     wanted_testerror=wanted_test_error,
