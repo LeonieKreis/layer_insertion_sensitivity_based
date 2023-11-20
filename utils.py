@@ -57,3 +57,32 @@ def ema_np(data, gamma=0.9):
     l_ema = ema(list(data), gamma=gamma)
     res = np.array(l_ema)
     return res
+
+
+def ema2(data: List, gamma=.9, no_of_steps_back = 10):
+    res = []
+    curr = data[0]
+    
+    i=0
+    res.append(float(curr))
+    for val in data[1:]:
+        min_index = int(max(0,i-no_of_steps_back))
+        curr = gamma* sum(data[min_index:i+1])/len(data[min_index:i+1]) + (1-gamma)* val
+        res.append(float(curr))
+        i+=1
+    return res
+
+def ema2_np(data, gamma=0.9, no_of_steps_back = 10):
+    '''
+    Implemnets exponential moving average.
+
+    Args:
+        data (list): list of data
+        gamma (float): decay factor. default 0.9
+
+    Out:
+        list of em-averaged data.
+    '''
+    l_ema = ema2(list(data), gamma=gamma, no_of_steps_back=no_of_steps_back)
+    res = np.array(l_ema)
+    return res
