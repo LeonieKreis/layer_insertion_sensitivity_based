@@ -145,7 +145,7 @@ T10 = True
 
 # define no of training run instances
 
-no_of_initializations = 3  # 50
+no_of_initializations = 5  # 50
 
 # set up empty lists for saving the observed quantities
 # (besides the save to the json file)

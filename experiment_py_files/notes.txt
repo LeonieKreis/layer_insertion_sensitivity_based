@@ -1,3 +1,11 @@
+0: mb absmax faster but same in the end 10 testerror end kein expfile!
+1: mb but classical is better, fwd relu
+2: mb schaut gut aus. kein abs min end test err 2, res2 relu
+3: as 2, fwd relu
+4: as 3 but with absmin no big diff, fwd relu
+5: bad (probably bad GD) fwd relu gd
+6: as 3 absmin slightly better fwd relu bs10
+
 7: GD with MNIST and fwd width 100,50, comparison to training on the original net(= the smallest one) not same paraminit
 7_5 ipynb where even if a layer is inserted it behaves the same as the further training on the original net
 8: as 7 but compared to resulting 100,100,50 fwd net
@@ -28,15 +36,10 @@ ab 16 sind gradienten layerweise dabei!!
 
 26: resnet with width 25
 
-TODOs:
-- absmax absmin gut und schlecht
-- 7 and 8 with minibatch- abs min abs max dep on lr unterschiedlich
+27: wie 22 bis 25 nur ein run und li at 10,20,..,80 vs orig vs bigger
+28: wie 27 nur mit konst lr 0.1
 
+29:
+30:
 
-0: mb absmax faster but same in the end 10 testerror end kein expfile!
-1: mb but classical is better, fwd relu
-2: mb schaut gut aus. kein abs min end test err 2, res2 relu
-3: as 2, fwd relu
-4: as 3 but with absmin no big diff, fwd relu
-5: bad (probably bad GD) fwd relu gd
-6: as 3 absmin slightly better fwd relu bs10
+31: wie 9 nur mit fairem lr schedule

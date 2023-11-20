@@ -1,0 +1,9 @@
+1: fwd relu net abs min vs abs max vs N1 vs N2 fixe lr 0.5
+2: li at 350 (wie 1) und 450, kein großer unterschied
+3: li at 150,250,..,850 vergelich mit N1, N2 fixe lr
+4: wie 3 nur mit lr decrease 0.8 und N2 von anfang an mal 0.8
+5: wie 1 nur li at 250
+
+6: wie 1 nur mit lr 0.2 und li at 450
+7: wie 4 nur mit lr 0.1
+8: wie 4 nur mit lr 0.2
