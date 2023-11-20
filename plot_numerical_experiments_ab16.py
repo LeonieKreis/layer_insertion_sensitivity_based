@@ -5,12 +5,12 @@ import torch
 import plot_helper
 from utils import ema_np, ema2_np
 
-k = 27
+k = 31
 
 run = "0"
 
 std = False
-plot_grads = True
+plot_grads = False
 plot_b = True
 plot_c = True
 plot_error = True
@@ -43,7 +43,7 @@ with open(f"results_data/Exp{k}_1.json") as file:
     # print(f'shape of a {a.shape}')
 
 if plot_b:
-    with open(f"results_data/Exp{k}_4.json") as file:
+    with open(f"results_data/Exp{k}_2.json") as file:
         # b_temp = list(json.load(file).values())
         f = json.load(file)
         b_temp = [f[i]['losses'] for i in f.keys()]

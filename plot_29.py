@@ -3,9 +3,8 @@ import json
 import matplotlib.pyplot as plt
 import matplotlib
 
-fileno = 30
-
-run = "0"
+fileno = 29
+run = "4"
 
 loss_all = []
 labels=["10","20","30","40","50","60","70","80","RN1","RN2"]
@@ -15,7 +14,7 @@ for k in range(1,11):
     with open(f"results_data/Exp{fileno}_{k}.json") as file:
         # a_temp = list(json.load(file).values())
         f = json.load(file)
-        a_temp = [f[i]['losses'] for i in f.keys()]
+        a_temp = [f[run]['losses']]
         a = np.array(a_temp)
         
     loss_all.append(a)
@@ -23,16 +22,9 @@ for k in range(1,11):
 
 with open(f"results_data/Exp{fileno}_9.json") as file:
     f=json.load(file)
-    g = [f[i]['grad_norms'] for i in f.keys()]
+    g = [f[run]['grad_norms']]
 
-#print(g)
-
-with open(f"results_data/Exp{fileno}_8.json") as file:
-    f=json.load(file)
-    grad_norms1 = f[run]['grad_norms'] 
-
-
-#print(grad_norms1)
+print(g)
 
 matplotlib.rc('ytick', labelsize=16)
 matplotlib.rc('xtick', labelsize=16)
@@ -72,23 +64,4 @@ plt.yscale('log')
 plt.xlabel('iterations')
 plt.ylabel('layerwise gradient norms scaled by lr')
 plt.title('RN1')
-
-
-if True:
-    plt.figure(figsize=(20,5))
-    l1 = len(grad_norms1[0])
-    l2 = len(grad_norms1[1])
-    len_t1 = len(grad_norms1[0][0])
-    len_t2 = len(grad_norms1[1][0])
-    for i in range(l1):
-        plt.plot(grad_norms1[0][i], label=f'0_{i}')
-    for j in range(l2):
-        #print(list(range(len_t1,len_t2+len_t1)))
-        plt.plot(list(range(len_t1,len_t2+len_t1)), grad_norms1[1][j], label=f'1_{j}')
-    plt.legend()
-    plt.yscale('log')
-    plt.xlabel('iterations')
-    plt.ylabel('layerwise gradient norms scaled by lr')
-    plt.title('li at 10')
-
 plt.show()
