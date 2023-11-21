@@ -20,7 +20,7 @@ from spirals_data_new import gen_spiral_dataset
 # for checking the progress of the training in the terminal, use the bash command: jp length filename.json
 # to see how many runs are already saved
 
-k = 6
+k = 11
 
 # seed
 s=1
@@ -32,14 +32,14 @@ torch.set_num_threads(8)
 
 # Define hyperparameters
 
-hidden_layers_start = 1
-fix_width = [5]
+hidden_layers_start = 2
+fix_width = [3,3]
 no_iters = 1
 lr_decrease_after_li = 1.
 epochs = [450,1400]  # [10, 5, 5]
 wanted_testerror = 0.
-_type = 'fwd'
-act_fun = nn.ReLU
+_type = 'res2'
+act_fun = nn.Tanh
 interval_testerror = 1
 
 batchsize = 450 # fullbatch
@@ -65,7 +65,7 @@ end_list.pop()  # removes last 1 which was too much
 
 save_grad_norms= True
 
-lr_init = 2e-1
+lr_init = 1e-1
 optimizer_type = 'SGD'
 lrscheduler_type = 'StepLR'
 lrscheduler_args = {'step_size': 4000,
