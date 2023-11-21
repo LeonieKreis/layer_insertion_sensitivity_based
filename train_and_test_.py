@@ -1,4 +1,5 @@
 import torch
+import time 
 import backtracking
 
 
@@ -45,6 +46,7 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
 
     mb_losses = []
     test_err_list = []
+    times = [0]
 
     if use_adaptive_lr:
         omega = 10
@@ -53,6 +55,7 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
 
     # loop over epochs
     for e in range(epochs):
+        tic = time.time()
         # print(f'epoch number {e+1}')
         for batch, (X, y) in enumerate(train_dataloader):
             #print(X.shape)
@@ -109,7 +112,9 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
                         lr = discont * lr + (1 - discont) * 1/omega ################ new end
                         optimizer.param_groups[0]['lr'] = lr
 
-
+        toc = time.time()
+        delta = toc-tic
+        times.append(delta+ times[-1])
         scheduler.step()
 
         if check_testerror_between is not None:
@@ -119,9 +124,9 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
                 print(f'(dataset)error at epoch {e} is {test_err}')
                 if test_err <= wanted_testerror:
                     exit_flag = 1
-                    return mb_losses, optimizer.param_groups[0]['lr'], test_err_list, exit_flag, grad_norms_layerwise
+                    return mb_losses, optimizer.param_groups[0]['lr'], test_err_list, exit_flag, grad_norms_layerwise, times
 
-    return mb_losses, optimizer.param_groups[0]['lr'], test_err_list, exit_flag, grad_norms_layerwise
+    return mb_losses, optimizer.param_groups[0]['lr'], test_err_list, exit_flag, grad_norms_layerwise, times
 
 
 def check_testerror(test_dataloader, model):

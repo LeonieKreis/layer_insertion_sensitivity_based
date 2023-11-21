@@ -1,5 +1,6 @@
 import torch
 import sys
+import time
 
 from utils import get_timestamp
 from train_and_test_ import check_testerror, train
@@ -56,11 +57,13 @@ def layer_insertion_loop(
         epochs = epochs + diff * [epochs[-1]]
 
     mb_losses_total = []
+    times_total = []
     grad_norms_total = []
     test_err_list = []
     test_err_list2 = []
     lr = lr_init
     exit_flag = 0  # means that wanted testerror is not attained
+    end_time = 0
 
     for k in range(iters):
         # iterate on current net
@@ -92,15 +95,19 @@ def layer_insertion_loop(
                 optimizer, milestones=step_size, gamma=gamma)
 
         # train
-        mb_losses1, lr_end_lastloop, test_error_l2, exit_flag, grad_norms = train(
+        mb_losses1, lr_end_lastloop, test_error_l2, exit_flag, grad_norms, times1 = train(
             model, train_dataloader, epochs[k], optimizer, lrscheduler, wanted_testerror=wanted_test_error,
             start_with_backtracking=start_with_backtracking, check_testerror_between=check_testerror_between,
             test_dataloader=test_dataloader, print_param_flag=print_param_flag, save_grad_norms=save_grad_norms, use_adaptive_lr=use_adaptive_lr)
 
         # train classically until stalling
         mb_losses_total = mb_losses_total + mb_losses1
+        times1_updated = [i + end_time for i in times1]
+        times_total = times_total + times1_updated
         # grad_norms_total = grad_norms_total + grad_norms
         grad_norms_total.append(grad_norms)
+
+        
 
         test_err_list2 = test_err_list2+test_error_l2
 
@@ -112,6 +119,10 @@ def layer_insertion_loop(
             exit_flag = 1
             print(f'The final model has the architecture: {model}')
             return model, mb_losses_total, test_err_list, test_err_list2, exit_flag, grad_norms_total
+
+        # get time of layer selection and new initialization
+        tic = time.time()
+
 
         # build partially frozen net for the shadow prices
         # build temporary net for the equality constrained training in next step
@@ -137,6 +148,13 @@ def layer_insertion_loop(
         model, kwargs_net, new_child = select_new_model(
             free_norms, freezed_norms, model=model_tmp, freezed=freezed, kwargs_net=kwargs_net_tmp, mode=mode,
             _type=kwargs_net['type'], v2=v2)
+        
+        toc = time.time()
+
+        time_model_selection = toc-tic
+        times_total[-1]= times_total[-1]+time_model_selection
+
+        end_time = times_total[-1]
 
         if save_grad_norms:
             values_at_li = []
@@ -179,7 +197,7 @@ def layer_insertion_loop(
         lrscheduler = torch.optim.lr_scheduler.MultiStepLR(
             optimizer, milestones=step_size, gamma=gamma)
 
-    mb_losseslast, lr, test_error_l2, exit_flag, grad_norms = train(model, train_dataloader, epochs[k+1], optimizer, lrscheduler,
+    mb_losseslast, lr, test_error_l2, exit_flag, grad_norms, times2 = train(model, train_dataloader, epochs[k+1], optimizer, lrscheduler,
                                                                     wanted_testerror=wanted_test_error,
                                                                     start_with_backtracking=start_with_backtracking,
                                                                     check_testerror_between=check_testerror_between,
@@ -188,6 +206,10 @@ def layer_insertion_loop(
     # after the last li train again
 
     mb_losses_total = mb_losses_total + mb_losseslast
+
+    times2_updated = [i + end_time for i in times2]
+
+    times_total = times_total + times2_updated
     # grad_norms_total = grad_norms_total + grad_norms
     grad_norms_total.append(grad_norms)
 
@@ -202,4 +224,4 @@ def layer_insertion_loop(
     print(
         f'norm of values of parameters (parameter-wise) at layer insertion: {values_at_li}')
 
-    return model, mb_losses_total, test_err_list, test_err_list2, exit_flag, grad_norms_total
+    return model, mb_losses_total, test_err_list, test_err_list2, exit_flag, grad_norms_total, times_total
