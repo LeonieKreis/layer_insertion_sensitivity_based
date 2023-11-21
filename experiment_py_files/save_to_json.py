@@ -1,7 +1,7 @@
 import json
 
 
-def write_losses(path, losses, max_length, structures=None, errors=None, interval_testerror=None, exit_flag=None, grad_norms = None, its_per_epoch=1):
+def write_losses(path, losses, max_length, structures=None, errors=None, interval_testerror=None, times=None, grad_norms = None, its_per_epoch=1):
     '''
     saves losses in json file under 'path' in a dict,
     optionally saves also the information which loss happened on which model
@@ -30,7 +30,7 @@ def write_losses(path, losses, max_length, structures=None, errors=None, interva
     number = len(data.keys())
 
     if grad_norms is None:
-        if exit_flag is None:
+        if times is None:
             if structures is None and errors is None:
                 data[str(number)] = {'losses': losses}
             if structures is not None and errors is None:
@@ -44,26 +44,26 @@ def write_losses(path, losses, max_length, structures=None, errors=None, interva
                                     'structures': structures,
                                     'errors': errs}
 
-        if exit_flag is not None:
+        if times is not None:
             if structures is None and errors is None:
                 data[str(number)] = {'losses': losses,
-                                    'exit_flag': exit_flag}
+                                    'times': times}
             if structures is not None and errors is None:
                 data[str(number)] = {'losses': losses,
                                     'structures': structures,
-                                    'exit_flag': exit_flag}
+                                    'times': times}
             if structures is None and errors is not None:
                 data[str(number)] = {'losses': losses,
                                     'errors': errs,
-                                    'exit_flag': exit_flag}
+                                    'times': times}
             if structures is not None and errors is not None:
                 data[str(number)] = {'losses': losses,
                                     'structures': structures,
                                     'errors': errs,
-                                    'exit_flag': exit_flag}
+                                    'times': times}
                 
     if grad_norms is not None:
-        if exit_flag is None:
+        if times is None:
             if structures is None and errors is None:
                 data[str(number)] = {'losses': losses, 
                                      'grad_norms': grad_norms}
@@ -81,26 +81,26 @@ def write_losses(path, losses, max_length, structures=None, errors=None, interva
                                     'errors': errs, 
                                     'grad_norms': grad_norms}
 
-        if exit_flag is not None:
+        if times is not None:
             if structures is None and errors is None:
                 data[str(number)] = {'losses': losses,
-                                    'exit_flag': exit_flag, 
+                                    'times': times, 
                                     'grad_norms': grad_norms}
             if structures is not None and errors is None:
                 data[str(number)] = {'losses': losses,
                                     'structures': structures,
-                                    'exit_flag': exit_flag, 
+                                    'times': times, 
                                     'grad_norms': grad_norms}
             if structures is None and errors is not None:
                 data[str(number)] = {'losses': losses,
                                     'errors': errs,
-                                    'exit_flag': exit_flag, 
+                                    'times': times, 
                                     'grad_norms': grad_norms}
             if structures is not None and errors is not None:
                 data[str(number)] = {'losses': losses,
                                     'structures': structures,
                                     'errors': errs,
-                                    'exit_flag': exit_flag, 
+                                    'times': times, 
                                     'grad_norms': grad_norms}
 
 
