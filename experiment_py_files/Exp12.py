@@ -20,7 +20,7 @@ from spirals_data_new import gen_spiral_dataset
 # for checking the progress of the training in the terminal, use the bash command: jp length filename.json
 # to see how many runs are already saved
 
-k = 12
+k = 122
 
 # seed
 s=1
@@ -125,7 +125,7 @@ T10 = True
 
 # define no of training run instances
 
-no_of_initializations = 1  # 50
+no_of_initializations = 5  # 50
 
 # set up empty lists for saving the observed quantities
 # (besides the save to the json file)
@@ -145,6 +145,7 @@ if os.path.isfile(path1):
 
 for i in range(no_of_initializations):
     print(f'loop number {i}!')
+    epochs = [150,3850]  
 
     # build net for ali 1
     # build model
