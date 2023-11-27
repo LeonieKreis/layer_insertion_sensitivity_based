@@ -6,7 +6,7 @@ import torch
 import plot_helper
 from utils import ema_np, ema2_np
 
-k = 6   ## 11 or 6
+k = 11   ## 11 or 6
 
 
 
@@ -19,6 +19,8 @@ if k==11:
     maximum_l=0.8
     minimum_e = 30
     maximum_e = 60
+    netsize_small = 33
+    netsize_big = 54
 if k==6:
     no = 1
     net_type = 'fnns'
@@ -27,6 +29,8 @@ if k==6:
     maximum_l=0.65
     minimum_e = 15
     maximum_e = 50
+    netsize_small = 27
+    netsize_big = 57
 
 
 run = "0"
@@ -78,20 +82,31 @@ with open(f"results_data_spirals/Exp{k}_4.json") as file:
     print(len(dt))
 
 if k==11:
-    labels = ['ResN LI','ResN1','ResN2']
+    labels = ['ResNet LI','ResNet1','ResNet2']
 if k==6:
     labels = ['FNN LI','FNN1','FNN2']
+
+
+x_axis_N1=[i*netsize_small for i in list(range(1850))]
+x_axis_N2=[i*netsize_big for i in list(range(1850))]
+x_axis_LI1=[i*netsize_small for i in list(range(450))]
+last_of_LI = x_axis_LI1[-1]
+x_axis_LI2=[last_of_LI+ i*netsize_big for i in list(range(1400))]
+x_axis_LI = x_axis_LI1 + x_axis_LI2
+
+x_axes = [x_axis_LI,x_axis_N1,x_axis_N2]
 
 methods = (a,c,d)
 times = (at,ct,dt)
 
 matplotlib.rc('ytick', labelsize=16)
 matplotlib.rc('xtick', labelsize=16)
-plt.figure(figsize=(20,5))
+fig, axes = plt.subplots(2, gridspec_kw={'height_ratios': [5,5]})
+fig.set_size_inches((20,10))
 
 # first subplot plot losses
 colors_ = ['b', 'r', 'y','g']  # , 'g', 'c', 'm', 'k']
-for i, (aa, ta) in enumerate(zip(methods, times)):
+for i, (aa, x) in enumerate(zip(methods, x_axes)):
     print(aa.shape)
     mean1 = np.nanmean(aa, axis=0)
     if labels is None:
@@ -103,31 +118,26 @@ for i, (aa, ta) in enumerate(zip(methods, times)):
     else:
         end_weg = None
     
-    plt.plot(ta[1:end_weg],mean1, colors_[i], label=label)
-    plt.legend(fontsize=15)
+    axes[0].plot(x,mean1, colors_[i], label=label)
+    axes[0].legend(fontsize=15)
     #plt.ylim([0, 2])
     ma = max([a.shape[1] for a in methods])
-    plt.vlines(timepoint,minimum_l,maximum_l,linestyles='dotted',colors='gray')
+    axes[0].vlines(last_of_LI,minimum_l,maximum_l,linestyles='dotted',colors='gray')
     #plt.xlim([0, ma])
-    plt.xlabel('time (s)', fontsize=20)
-    plt.ylabel(' loss', fontsize=20)
+    axes[0].set_xlabel('number of parameters * iteration', fontsize=20)
+    axes[0].set_ylabel(' loss', fontsize=20)
     if log_scale:
-        plt.yscale('log')
+        axes[0].set_yscale('log')
 
 
-plt.tight_layout()
-#plt.savefig(f'../../Papers/plots/comp-fixed-architecture-{net_type}-loss.pdf', format="pdf", bbox_inches="tight")
 
-matplotlib.rc('ytick', labelsize=16)
-matplotlib.rc('xtick', labelsize=16)
-plt.figure(figsize=(20,5))
 
 # plot errors
 if plot_error:
     methods_e = (ae,ce,de)
     
     colors_ = ['b', 'r', 'y','g']  # , 'g', 'c', 'm', 'k']
-    for i, (aa, ta) in enumerate(zip(methods_e, times)):
+    for i, (aa, x) in enumerate(zip(methods_e,x_axes)):
         print(f'aa.shape {aa.shape}')
         mean1 = np.nanmean(aa, axis=0)
 
@@ -140,23 +150,24 @@ if plot_error:
         else:
             end_weg = None
     
-        plt.plot(ta[0:end_weg],mean1, colors_[i] , label=label,
-                     linewidth=2)  # , linestyle='o')
+        axes[1].plot(x+[x[-1]],mean1, colors_[i] , label=label,
+                     linewidth=2)  
         
-        plt.vlines(timepoint,minimum_e,maximum_e,linestyles='dotted',colors='gray')
+        axes[1].vlines(last_of_LI,minimum_e,maximum_e,linestyles='dotted',colors='gray')
     
-        plt.legend(fontsize=15)
+        axes[1].legend(fontsize=15)
         #plt.ylim([0, 60])
         ma = max([a.shape[1] for a in methods])
         
         # plt.xlim([0, ma])
-        plt.xlabel('time (s)', fontsize=20)
-        plt.ylabel('test error', fontsize=20)
+        axes[1].set_xlabel('number of parameters * iteration', fontsize=20)
+        axes[1].set_ylabel('test error (%)', fontsize=20)
     #plt.show()
 
 
 
 plt.tight_layout()
-#plt.savefig(f'../../Papers/plots/comp-fixed-architecture-{net_type}-error.pdf', format="pdf", bbox_inches="tight")
+#plt.savefig(f'../../Papers/plots/comp-fixed-architecture-{net_type}-loss-and-error_wrt_work.pdf', format="pdf", bbox_inches="tight")
 plt.show()
 
+# comp-fixed-architecture-resnets-loss-and-error.pdf

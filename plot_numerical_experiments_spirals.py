@@ -5,7 +5,7 @@ import torch
 import plot_helper
 from utils import ema_np, ema2_np
 
-k = 1
+k = 6
 
 run = "0"
 
@@ -70,7 +70,7 @@ with open(f"results_data_spirals/Exp{k}_4.json") as file:
     # print(f'shape of d {d.shape}')
 
 
-methods = (a,b,c,d)
+methods = (a,c,d)#(a,b,c,d)
 labels = ['LI', 'LI2','N1','N2']
 plt.figure(figsize=(20,5))
 

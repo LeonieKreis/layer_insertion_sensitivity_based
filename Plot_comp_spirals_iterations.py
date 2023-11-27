@@ -1,12 +1,11 @@
 import numpy as np
 import json
 import matplotlib.pyplot as plt
-import matplotlib
 import torch
 import plot_helper
 from utils import ema_np, ema2_np
 
-k = 6   ## 11 or 6
+k = 11   ## 11 or 6
 
 
 
@@ -14,20 +13,9 @@ k = 6   ## 11 or 6
 if k==11:
     no = 2
     net_type = 'resnets'
-    timepoint= 21.5 #23.8
-    minimum_l=0.5
-    maximum_l=0.8
-    minimum_e = 30
-    maximum_e = 60
 if k==6:
     no = 1
     net_type = 'fnns'
-    timepoint=23.8
-    minimum_l=0.25
-    maximum_l=0.65
-    minimum_e = 15
-    maximum_e = 50
-
 
 run = "0"
 
@@ -85,8 +73,7 @@ if k==6:
 methods = (a,c,d)
 times = (at,ct,dt)
 
-matplotlib.rc('ytick', labelsize=16)
-matplotlib.rc('xtick', labelsize=16)
+
 plt.figure(figsize=(20,5))
 
 # first subplot plot losses
@@ -102,15 +89,15 @@ for i, (aa, ta) in enumerate(zip(methods, times)):
         end_weg = -1
     else:
         end_weg = None
-    
-    plt.plot(ta[1:end_weg],mean1, colors_[i], label=label)
+    #plt.plot(ta[1:end_weg],mean1, colors_[i], label=label)
+    plt.plot(mean1, colors_[i], label=label)
     plt.legend(fontsize=15)
     #plt.ylim([0, 2])
     ma = max([a.shape[1] for a in methods])
-    plt.vlines(timepoint,minimum_l,maximum_l,linestyles='dotted',colors='gray')
+    plt.vlines(450,0.5,0.8,linestyles='dotted',colors='gray')
     #plt.xlim([0, ma])
-    plt.xlabel('time (s)', fontsize=20)
-    plt.ylabel(' loss', fontsize=20)
+    plt.xlabel('iteration')
+    plt.ylabel(' (fullbatch) loss')
     if log_scale:
         plt.yscale('log')
 
@@ -118,17 +105,15 @@ for i, (aa, ta) in enumerate(zip(methods, times)):
 plt.tight_layout()
 #plt.savefig(f'../../Papers/plots/comp-fixed-architecture-{net_type}-loss.pdf', format="pdf", bbox_inches="tight")
 
-matplotlib.rc('ytick', labelsize=16)
-matplotlib.rc('xtick', labelsize=16)
-plt.figure(figsize=(20,5))
+
 
 # plot errors
 if plot_error:
     methods_e = (ae,ce,de)
-    
+    plt.figure(figsize=(20,5))
     colors_ = ['b', 'r', 'y','g']  # , 'g', 'c', 'm', 'k']
     for i, (aa, ta) in enumerate(zip(methods_e, times)):
-        print(f'aa.shape {aa.shape}')
+        #print(aa.shape)
         mean1 = np.nanmean(aa, axis=0)
 
         if labels is None:
@@ -139,19 +124,20 @@ if plot_error:
             end_weg = -1
         else:
             end_weg = None
-    
-        plt.plot(ta[0:end_weg],mean1, colors_[i] , label=label,
+        #plt.plot(ta[0:end_weg], mean1, colors_[i] + 'o', label=label,
+                     #markersize=5)  # , linestyle='o')
+        plt.plot(mean1, colors_[i] , label=label,
                      linewidth=2)  # , linestyle='o')
         
-        plt.vlines(timepoint,minimum_e,maximum_e,linestyles='dotted',colors='gray')
+        plt.vlines(450,30,60,linestyles='dotted',colors='gray')
     
         plt.legend(fontsize=15)
         #plt.ylim([0, 60])
         ma = max([a.shape[1] for a in methods])
         
         # plt.xlim([0, ma])
-        plt.xlabel('time (s)', fontsize=20)
-        plt.ylabel('test error', fontsize=20)
+        plt.xlabel('iterations')
+        plt.ylabel('test error')
     #plt.show()
 
 

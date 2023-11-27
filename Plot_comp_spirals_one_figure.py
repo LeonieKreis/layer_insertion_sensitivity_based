@@ -78,7 +78,7 @@ with open(f"results_data_spirals/Exp{k}_4.json") as file:
     print(len(dt))
 
 if k==11:
-    labels = ['ResN LI','ResN1','ResN2']
+    labels = ['ResNet LI','ResNet1','ResNet2']
 if k==6:
     labels = ['FNN LI','FNN1','FNN2']
 
@@ -87,7 +87,8 @@ times = (at,ct,dt)
 
 matplotlib.rc('ytick', labelsize=16)
 matplotlib.rc('xtick', labelsize=16)
-plt.figure(figsize=(20,5))
+fig, axes = plt.subplots(2, gridspec_kw={'height_ratios': [5,5]})
+fig.set_size_inches((20,10))
 
 # first subplot plot losses
 colors_ = ['b', 'r', 'y','g']  # , 'g', 'c', 'm', 'k']
@@ -103,24 +104,19 @@ for i, (aa, ta) in enumerate(zip(methods, times)):
     else:
         end_weg = None
     
-    plt.plot(ta[1:end_weg],mean1, colors_[i], label=label)
-    plt.legend(fontsize=15)
+    axes[0].plot(ta[1:end_weg],mean1, colors_[i], label=label)
+    axes[0].legend(fontsize=15)
     #plt.ylim([0, 2])
     ma = max([a.shape[1] for a in methods])
-    plt.vlines(timepoint,minimum_l,maximum_l,linestyles='dotted',colors='gray')
+    axes[0].vlines(timepoint,minimum_l,maximum_l,linestyles='dotted',colors='gray')
     #plt.xlim([0, ma])
-    plt.xlabel('time (s)', fontsize=20)
-    plt.ylabel(' loss', fontsize=20)
+    axes[0].set_xlabel('time (s)', fontsize=20)
+    axes[0].set_ylabel(' loss', fontsize=20)
     if log_scale:
-        plt.yscale('log')
+        axes[0].set_yscale('log')
 
 
-plt.tight_layout()
-#plt.savefig(f'../../Papers/plots/comp-fixed-architecture-{net_type}-loss.pdf', format="pdf", bbox_inches="tight")
 
-matplotlib.rc('ytick', labelsize=16)
-matplotlib.rc('xtick', labelsize=16)
-plt.figure(figsize=(20,5))
 
 # plot errors
 if plot_error:
@@ -140,23 +136,24 @@ if plot_error:
         else:
             end_weg = None
     
-        plt.plot(ta[0:end_weg],mean1, colors_[i] , label=label,
+        axes[1].plot(ta[0:end_weg],mean1, colors_[i] , label=label,
                      linewidth=2)  # , linestyle='o')
         
-        plt.vlines(timepoint,minimum_e,maximum_e,linestyles='dotted',colors='gray')
+        axes[1].vlines(timepoint,minimum_e,maximum_e,linestyles='dotted',colors='gray')
     
-        plt.legend(fontsize=15)
+        axes[1].legend(fontsize=15)
         #plt.ylim([0, 60])
         ma = max([a.shape[1] for a in methods])
         
         # plt.xlim([0, ma])
-        plt.xlabel('time (s)', fontsize=20)
-        plt.ylabel('test error', fontsize=20)
+        axes[1].set_xlabel('time (s)', fontsize=20)
+        axes[1].set_ylabel('test error (%)', fontsize=20)
     #plt.show()
 
 
 
 plt.tight_layout()
-#plt.savefig(f'../../Papers/plots/comp-fixed-architecture-{net_type}-error.pdf', format="pdf", bbox_inches="tight")
+plt.savefig(f'../../Papers/plots/comp-fixed-architecture-{net_type}-loss-and-error.pdf', format="pdf", bbox_inches="tight")
 plt.show()
 
+# comp-fixed-architecture-resnets-loss-and-error.pdf
