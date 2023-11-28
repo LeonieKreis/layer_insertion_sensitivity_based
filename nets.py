@@ -10,6 +10,7 @@ def feed_forward(dim_in, dim_out, hidden_layers=1, dim_hidden_layers=3, act_fun=
         dim_hidden_layers (int or list): specifies the widths of the hidden layers.
         act_fun: default nn.ReLU, but any (for layer insertion suitable) activation function, implemented such that it
         can be used in sequential model construction (must be wrapped as a module).
+        flatten: (bool) indicates whether data is an image and must be flattened or not (as it is the case for the spirals)
 
     Out:
         sequential pytorch model. If input is invalid, raise ValueError.
@@ -68,6 +69,7 @@ def two_weight_resnet(dim_in, dim_out, hidden_layers=1, dim_hidden_layers=3, act
         dim_hidden_layers (int or list): specifies the widths of the hidden layers.
         act_fun: default nn.ReLU, but any (for layer insertion suitable) activation function, implemented such that it
         can be used in sequential model construction (must be wrapped as a module).
+        flatten: (bool) indicates whether data is an image and must be flattened or not (as it is the case for the spirals)
 
     Out:
         sequential pytorch model. If input is invalid, raise ValueError.

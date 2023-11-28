@@ -38,7 +38,9 @@ def layer_insertion_loop(
             print_param_flag (default False): if True, prints the parameter gradients for the first 10 epochs
             start_with_backtracking (None or int): if None, there is  no backtracking performed, if it is an integer k ,
             then for the first k epochs, backtracking is performed after the layer insertion.
-            save_grad_norm: (bool) default False. If True, saves the averaged squared norm of the gradient in each step of the optimizer during training.
+            v2: default: False
+            save_grad_norms: (bool) default False. If True, saves the averaged layerwise squared norm of the gradient in each step of the optimizer during training.
+            use_adaptive_lr (bool): default False. If True, uses an adaptive learning rate scheme suggested by Frederik Köhne
 
 
     Out:
@@ -47,6 +49,8 @@ def layer_insertion_loop(
         test_err_list (list): list of test errors after each "step 1"-training on a model
         test_err_list2 (list): list of test errors computed also during the training
         exit_flag: 0 or 1. 1 indicates that wanted testerror was reached during training
+        grad_norms_total: list of list ov layerwise avergae gradients for all iterations
+        times_total: times needed for each iteration
 
     '''
 

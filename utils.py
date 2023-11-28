@@ -60,6 +60,9 @@ def ema_np(data, gamma=0.9):
 
 
 def ema2(data: List, gamma=.9, no_of_steps_back = 10):
+    '''
+    Implements average over a fixed window of 'no_of_steps_back' iterations
+    '''
     res = []
     curr = data[0]
     
@@ -73,16 +76,7 @@ def ema2(data: List, gamma=.9, no_of_steps_back = 10):
     return res
 
 def ema2_np(data, gamma=0.9, no_of_steps_back = 10):
-    '''
-    Implemnets exponential moving average.
-
-    Args:
-        data (list): list of data
-        gamma (float): decay factor. default 0.9
-
-    Out:
-        list of em-averaged data.
-    '''
+    
     l_ema = ema2(list(data), gamma=gamma, no_of_steps_back=no_of_steps_back)
     res = np.array(l_ema)
     return res

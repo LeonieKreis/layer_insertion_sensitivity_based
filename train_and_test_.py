@@ -26,13 +26,15 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
             If an integer is specified, e.g. k=1, the after k epochs, the testerror is checked during training on one model.
         test_dataloader: iterable from pytorch containing the test data
         print_param_flag (default False): if True, prints the parameter gradients for the first 10 epochs
-        save_grad_norm: (bool) default False. If True, saves the averaged squared norm of the gradient in each step.
+        save_grad_norms: (bool) default False. If True, saves the layerwise averaged squared norm of the gradient in each step.
 
     Out:
         mb_losses (list): list of all minibatch losses during training
         lr: current lr used at end of training
         test_err_list (list): list which contain the testerrors during training if computed
         exit_flag: 0 or 1. 1 indicates that wanted testerror was reached during training
+        grad_norms_layerwise: [] if save_gard_norms is False, otherwise a list of the layerwise averaged gradients for each iteration
+        times: list of times of the iterates
 
     '''
     grad_norms = []
@@ -135,12 +137,11 @@ def check_testerror(test_dataloader, model):
     100(= all wrong) and 0(=all correct).
 
     Args:
-        test_data_x: torch.tensor which holds the test inputs
-        test_data_y: torch.tensor which holds the test outputs
+        test_dataloader: pxtorch dataloader of testdata
         model: pytorch model
 
     Out:
-        test_err (float): test error between 100 and 0.
+        test_err (float): test error between 100 and 0 in %.
     '''
     correct = 0
     #no_data = test_dataloader.batch_size

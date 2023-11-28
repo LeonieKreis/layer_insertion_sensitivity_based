@@ -185,6 +185,23 @@ validation_generator_full = data.DataLoader(
 
 
 def gen_spiral_dataset(batchsize,N, r0, circles):
+    '''
+    generates train and testdataloader for the spiral dataset. additionally it outputs also all input and output data needed to plot the decisionboundary of a model with this data on top.
+    Spiral points are 2d point which belong to one of the two possible spiral classes.
+
+    Args:
+    batchsize: (int) batchsize of the train (and test) dataloader
+    N: (int) number of data per class
+    r0: (\in [0,1]) indicates how close the spirals ar at the center. smaller values lead to more complex classification tasks.
+    circles (value>0): number of circles which each spiral makes (can also be non-interger) 
+
+    Returns:
+    train_dataloader: pytorch dataloader for training (75% of data)
+    test_dataloader: pytorch dataloader for testing (25% of data)
+    data_X
+    data_y
+    
+    '''
     D = 2
     K = 2
     number = N

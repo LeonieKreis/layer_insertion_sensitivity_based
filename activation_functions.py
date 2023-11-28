@@ -7,7 +7,7 @@ from torch import nn
 # it is hardcoded there!
 class TanhLU_shifted(nn.Module):
     '''
-    This activation function is in C²(R,R), which is needed for the lagrange multiplier theory
+    This activation function is in C²(R,R) and approximates the ReLU-function
     sigma(x)=x for x>=epsilon
     sigma(x)=epsilon*(tanh((x-epsilon)/epsilon) +1)for x<=epsilon
 
