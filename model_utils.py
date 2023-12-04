@@ -124,15 +124,15 @@ def freeze_params(model, act_fun, old_model, _type='fwd', v2=False):
                 # if yes save all already inner weight values and set flag to yes
 
             for p in model.parameters():
-                if i == 0 or i == 1:  # parameters of linear layer at beginning
+                if i == 0:  # parameter of linear layer at beginning
                     # do nothing
                     i += 1
                     continue
-                elif i == no-2 or i == no-1:  # parameters of linear layer at the end
+                elif i == no-1:  # parameter of linear layer at the end
                     # do nothing
                     i += 1
                     continue
-                elif i % 3 == 2 and i % 6 == 2:
+                elif i % 3 == 1 and i % 6 == 1: 
                     # freeze and init innner weight
                     if not init_with_weight_before:
                         p.copy_(torch.diag_embed(scale*torch.ones_like(p[0])))
@@ -142,13 +142,13 @@ def freeze_params(model, act_fun, old_model, _type='fwd', v2=False):
                     freezed.append(p)
                     i += 1
                     continue
-                elif i % 3 == 0 and i % 6 == 3:
+                elif i % 3 == 2 and i % 6 == 2: 
                     # freeze and init bias
                     p.mul_(0.)
                     freezed.append(p)
                     i += 1
                     continue
-                elif i % 3 == 1 and i % 6 == 4:
+                elif i % 3 == 0 and i % 6 == 3: 
                     # freeze and init outer weight
                     p.mul_(0.)
                     freezed.append(p)
@@ -169,7 +169,7 @@ def freeze_params(model, act_fun, old_model, _type='fwd', v2=False):
                     W2_list.append(child.l2.weight.data)
                 # if yes save all already inner weight values and set flag to yes
 
-            for p in model.parameters():
+            for p in model.parameters(): # TODO TODO TODO
                 if i == 0 or i == 1:  # parameters of linear layer at beginning
                     # do nothing
                     i += 1
