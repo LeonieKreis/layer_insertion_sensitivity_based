@@ -34,7 +34,7 @@ def feed_forward(dim_in, dim_out, hidden_layers=1, dim_hidden_layers=3, act_fun=
             modules.append(act_fun())
             dim_old = dim_curr
 
-        modules.append(nn.Linear(dim_old, dim_out))
+        modules.append(nn.Linear(dim_old, dim_out, bias=False))
 
         return nn.Sequential(*modules)
 
