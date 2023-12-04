@@ -107,7 +107,7 @@ def freeze_params(model, act_fun, old_model, _type='fwd', v2=False):
         # for the initialization of the inner weight
         init_with_weight_before = False
         init_with_identity = True
-        scale = 0.8  # scaling of the identity matrix
+        scale = 1  # scaling of the identity matrix
 
         # start freezing and initializing
         i = 0
