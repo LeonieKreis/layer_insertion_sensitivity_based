@@ -1,5 +1,6 @@
 from torch.utils import data
-from random import shuffle
+from random import shuffle, seed
+import random
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
@@ -184,7 +185,7 @@ validation_generator_full = data.DataLoader(
     validation_set, **params_full_validation)
 
 
-def gen_spiral_dataset(batchsize,N, r0, circles):
+def gen_spiral_dataset(batchsize,N, r0, circles, sigma =0.):
     '''
     generates train and testdataloader for the spiral dataset. additionally it outputs also all input and output data needed to plot the decisionboundary of a model with this data on top.
     Spiral points are 2d point which belong to one of the two possible spiral classes.
@@ -194,6 +195,7 @@ def gen_spiral_dataset(batchsize,N, r0, circles):
     N: (int) number of data per class
     r0: (\in [0,1]) indicates how close the spirals ar at the center. smaller values lead to more complex classification tasks.
     circles (value>0): number of circles which each spiral makes (can also be non-interger) 
+    sigma: positive value indicating the standard deviation of the gaussian white noise. default zero.
 
     Returns:
     train_dataloader: pytorch dataloader for training (75% of data)
@@ -202,6 +204,7 @@ def gen_spiral_dataset(batchsize,N, r0, circles):
     data_y
     
     '''
+    seed(1)
     D = 2
     K = 2
     number = N
@@ -217,8 +220,8 @@ def gen_spiral_dataset(batchsize,N, r0, circles):
         delta_r = circles / number
         r = r +i* delta_r
 
-        x= r*spiral_num*torch.cos(phi)
-        y = r*spiral_num*torch.sin(phi)
+        x= r*spiral_num*torch.cos(phi) + np.random.normal(0,sigma)
+        y = r*spiral_num*torch.sin(phi) + np.random.normal(0,sigma)
         return [x,y]
 
 
@@ -462,3 +465,47 @@ def check_accuracy(model, x_data, y_data):
     num_correct = torch.sum(y_arg_maxs == arg_maxs)
     acc = (num_correct * 100.0 / len(y_data))
     return acc.item()
+
+
+def plot_dataset(features, labels, save_plot=None):
+    '''
+    plots dataset of the given data. This works only for models with 2-dimensional input!
+
+    Args:
+      features: torch tensor of model input data
+      labels: torch tensor of corresponding model output data
+
+      Example: features=torch.tensor([[1.,0.],[0.,1.],[-1.,0.],[0.,-1.]])
+               labels= torch.tensor([[0],[1],[1],[0]])
+
+    Out:
+       no return value. generates a plot.
+    '''
+    # Plot the decision boundary
+    # Determine grid range in x and y directions
+    x_min, x_max = features[:, 0].min()-1, features[:, 0].max()+1
+    y_min, y_max = features[:, 1].min()-1, features[:, 1].max()+1
+
+    # Set grid spacing parameter
+    spacing = min(x_max - x_min, y_max - y_min) / 500  # 250
+
+    # Create grid
+    XX, YY = np.meshgrid(np.arange(x_min, x_max, spacing),
+                         np.arange(y_min, y_max, spacing))
+
+    # Concatenate data to match input
+    data = np.hstack((XX.ravel().reshape(-1, 1),
+                      YY.ravel().reshape(-1, 1)))
+
+    plt.scatter(features[:, 0], features[:, 1],
+                c=labels, s=40, cmap=plt.cm.Spectral)
+ 
+    if save_plot is not None:
+        # save_plot provides the path
+        # plt.close()
+        plt.savefig(save_plot, bbox_inches='tight')
+        plt.close()
+        # os.unlink(save_plot)
+    else:
+        plt.show()
+    # fig.savefig('spiral_linear.png')
