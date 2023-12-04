@@ -17,9 +17,10 @@ def feed_forward(dim_in, dim_out, hidden_layers=1, dim_hidden_layers=3, act_fun=
     '''
     modules = []
     if hidden_layers == 0:  # if no hidden layers are specified, the net is a linear model
-        if flatten:
-            return nn.Sequential(nn.Flatten(), nn.Linear(dim_in, dim_out))
-        else: return nn.Sequential(nn.Linear(dim_in, dim_out))
+        print('there must be at least one hidden layer!')
+        #if flatten:
+        #    return nn.Sequential(nn.Flatten(), nn.Linear(dim_in, dim_out))
+        #else: return nn.Sequential(nn.Linear(dim_in, dim_out))
     if isinstance(dim_hidden_layers, int):  # all hidden layers have the same width
         dim_hidden_layers = [dim_hidden_layers] * hidden_layers
     # the hidden layers have different widths
@@ -76,17 +77,18 @@ def two_weight_resnet(dim_in, dim_out, hidden_layers=1, dim_hidden_layers=3, act
     '''
     modules = []
     if hidden_layers == 0:  # if no hidden layers are specified, the net is a linear model
-        if flatten:
-            return nn.Sequential(nn.Flatten(), nn.Linear(dim_in, dim_out))
-        else:
-            return nn.Sequential(nn.Linear(dim_in, dim_out))
+        print('there must be at least one hidden layer!')
+        #if flatten:
+        #    return nn.Sequential(nn.Flatten(), nn.Linear(dim_in, dim_out, bias=False))
+        #else:
+        #    return nn.Sequential(nn.Linear(dim_in, dim_out, bias=False))
     if hidden_layers == 1:
         if flatten:
-            return (nn.Sequential( nn.Linear(dim_in, dim_hidden_layers), act_fun(),
-                              nn.Linear(dim_hidden_layers, dim_out)))
+            return (nn.Sequential( nn.Linear(dim_in, dim_hidden_layers, bias=False), 
+                              nn.Linear(dim_hidden_layers, dim_out, bias=False)))
         else:
-            return (nn.Sequential(nn.Flatten(), nn.Linear(dim_in, dim_hidden_layers), act_fun(),
-                              nn.Linear(dim_hidden_layers, dim_out)))
+            return (nn.Sequential(nn.Flatten(), nn.Linear(dim_in, dim_hidden_layers, bias=False), 
+                              nn.Linear(dim_hidden_layers, dim_out, bias=False)))
     if isinstance(dim_hidden_layers, int):  # all hidden layers have the same width
         dim_hidden_layers = [dim_hidden_layers] * hidden_layers
     # the hidden layers have the same widths
@@ -98,7 +100,7 @@ def two_weight_resnet(dim_in, dim_out, hidden_layers=1, dim_hidden_layers=3, act
             dim_curr = dim
             if k == 0:
                 modules.append(
-                    nn.Linear(in_features=dim_old, out_features=dim_curr))
+                    nn.Linear(in_features=dim_old, out_features=dim_curr, bias=False))
                 modules.append(act_fun())
 
             else:
@@ -107,7 +109,7 @@ def two_weight_resnet(dim_in, dim_out, hidden_layers=1, dim_hidden_layers=3, act
 
             dim_old = dim_curr
 
-        modules.append(nn.Linear(dim_old, dim_out))
+        modules.append(nn.Linear(dim_old, dim_out, bias=False))
 
         return nn.Sequential(*modules)
 
@@ -146,7 +148,7 @@ def one_weight_resnet(dim_in, dim_out, hidden_layers=1, dim_hidden_layers=3, act
     '''
     modules = []
     if hidden_layers == 0:  # if no hidden layers are specified, the net is a linear model
-        return nn.Sequential(nn.Flatten(), nn.Linear(dim_in, dim_out))
+        print('there must be at least one hidden layer!')
     if hidden_layers == 1:
         return (nn.Sequential(nn.Flatten(), nn.Linear(dim_in, dim_hidden_layers), act_fun(),
                               nn.Linear(dim_hidden_layers, dim_out)))

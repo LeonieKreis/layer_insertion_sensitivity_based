@@ -83,7 +83,7 @@ def tmp_net(dim_in, dim_out, hidden_layers, dim_hidden_layers, act_fun, _type, m
             for p_new in new_model.parameters():
                 if not _is_freezed(p_new, freezed):
                     p = next(old_param_iterator)
-                    p_new.copy_(p)              # TODO
+                    p_new.copy_(p)              
         return new_model, freezed, new_kwargs_net
     
     if _type == 'res1':
