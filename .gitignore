@@ -163,3 +163,7 @@ cython_debug/
 data/
 results_data/
 figs/
+heatmaps/
+results_data_steps/
+tikzpicture_plots/
+results_data_spirals/
