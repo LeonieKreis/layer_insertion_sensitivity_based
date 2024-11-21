@@ -12,7 +12,7 @@ def layer_insertion_loop(
         iters, epochs, model, kwargs_net, dim_in, dim_out, train_dataloader, test_dataloader, lr_init,
         wanted_test_error=0.5, mode='abs max', optimizer_type='SGD', lrschedule_type='StepLR', lrscheduler_args=None,
         check_testerror_between=None, decrease_after_li=1., print_param_flag=False, start_with_backtracking=None,
-        v2=False, save_grad_norms=False, use_adaptive_lr=False):
+        v2=False, save_grad_norms=False, use_adaptive_lr=False, loss_fn=torch.nn.CrossEntropyLoss(), test_mode='01', save_heatmaps=False):
     '''
     implements training loop for (adaptive) layer insertion and minibatch SGD
 
@@ -41,6 +41,9 @@ def layer_insertion_loop(
             v2: default: False
             save_grad_norms: (bool) default False. If True, saves the averaged layerwise squared norm of the gradient in each step of the optimizer during training.
             use_adaptive_lr (bool): default False. If True, uses an adaptive learning rate scheme suggested by Frederik Köhne
+            loss_fn: default torch.nn.CrossEntropyLoss(). Loss function used for training
+            test_mode: default '01'. Specifies the test mode. '01' means that the test error is computed as the fraction of misclassified test samples
+            save_heatmaps: default False. If True, saves heatmaps of the weights and gradients of the weights during training
 
 
     Out:
@@ -102,7 +105,8 @@ def layer_insertion_loop(
         mb_losses1, lr_end_lastloop, test_error_l2, exit_flag, grad_norms, times1 = train(
             model, train_dataloader, epochs[k], optimizer, lrscheduler, wanted_testerror=wanted_test_error,
             start_with_backtracking=start_with_backtracking, check_testerror_between=check_testerror_between,
-            test_dataloader=test_dataloader, print_param_flag=print_param_flag, save_grad_norms=save_grad_norms, use_adaptive_lr=use_adaptive_lr)
+            test_dataloader=test_dataloader, print_param_flag=print_param_flag, save_grad_norms=save_grad_norms, 
+            use_adaptive_lr=use_adaptive_lr,loss_fn=loss_fn, test_mode=test_mode, save_heatmaps=save_heatmaps)
 
         # train classically until stalling
         mb_losses_total = mb_losses_total + mb_losses1
@@ -116,13 +120,13 @@ def layer_insertion_loop(
         test_err_list2 = test_err_list2+test_error_l2
 
         # test error check if good, break, if not, write in list
-        curr_test_err = check_testerror(test_dataloader, model)
+        curr_test_err = check_testerror(test_dataloader, model, test_mode=test_mode)
         test_err_list.append(curr_test_err)
         print(f'Test error after first step of loop {k+1} is {curr_test_err}!')
         if curr_test_err <= wanted_test_error:
             exit_flag = 1
             print(f'The final model has the architecture: {model}')
-            return model, mb_losses_total, test_err_list, test_err_list2, exit_flag, grad_norms_total
+            return model, mb_losses_total, test_err_list, test_err_list2, exit_flag, grad_norms_total, times_total
 
         # get time of layer selection and new initialization
         tic = time.time()
@@ -149,7 +153,7 @@ def layer_insertion_loop(
 
         # select new model based on the shadow prices
         # insert one frozen layer and unfreeze, delete other frozen layers
-        model, kwargs_net, new_child = select_new_model(
+        model, kwargs_net, new_child, sens = select_new_model(
             free_norms, freezed_norms, model=model_tmp, freezed=freezed, kwargs_net=kwargs_net_tmp, mode=mode,
             _type=kwargs_net['type'], v2=v2)
         
@@ -176,7 +180,7 @@ def layer_insertion_loop(
             #    # Reset the standard output
             #    sys.stdout = original_stdout
 
-        lr = decrease_after_li * lr_end_lastloop  # decrease lr for next loop
+        lr = decrease_after_li * lr_end_lastloop  # decrease lr for  loop
 
     print(f'starting on {k+2}. net!')
     print(model)
@@ -206,7 +210,8 @@ def layer_insertion_loop(
                                                                     start_with_backtracking=start_with_backtracking,
                                                                     check_testerror_between=check_testerror_between,
                                                                     test_dataloader=test_dataloader, print_param_flag=print_param_flag,
-                                                                    save_grad_norms=save_grad_norms,use_adaptive_lr=use_adaptive_lr)
+                                                                    save_grad_norms=save_grad_norms,use_adaptive_lr=use_adaptive_lr,
+                                                                    loss_fn=loss_fn,test_mode=test_mode,save_heatmaps=save_heatmaps)
     # after the last li train again
 
     mb_losses_total = mb_losses_total + mb_losseslast
@@ -218,7 +223,7 @@ def layer_insertion_loop(
     grad_norms_total.append(grad_norms)
 
     test_err_list2 = test_err_list2 + test_error_l2
-    curr_test_err = check_testerror(test_dataloader, model)
+    curr_test_err = check_testerror(test_dataloader, model, test_mode=test_mode)
     if curr_test_err <= wanted_test_error:
         exit_flag = 1
     test_err_list.append(curr_test_err)
@@ -228,4 +233,4 @@ def layer_insertion_loop(
     print(
         f'norm of values of parameters (parameter-wise) at layer insertion: {values_at_li}')
 
-    return model, mb_losses_total, test_err_list, test_err_list2, exit_flag, grad_norms_total, times_total
+    return model, mb_losses_total, test_err_list, test_err_list2, exit_flag, grad_norms_total, times_total, sens
