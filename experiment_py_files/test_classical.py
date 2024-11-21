@@ -14,7 +14,7 @@ from layer_insertion_loop import layer_insertion_loop
 from train_and_test_ import train, check_testerror
 from nets import feed_forward, two_weight_resnet, one_weight_resnet
 from save_to_json import write_losses
-from spirals_data_new import gen_spiral_dataset, plot_decision_boundary
+from spirals_data_new import gen_spiral_dataset, plot_decision_boundary, plot_dataset
 
 # ################# fix hyperparameters ###################################
 
@@ -33,21 +33,26 @@ torch.set_num_threads(8)
 
 # Define hyperparameters
 
-hidden_layers = 2
-fix_width = 3
+hidden_layers = 3
+fix_width = 20
 epochs_classical = 4000
 wanted_testerror = 0.
-_type = 'res2'
-act_fun = nn.Tanh
+_type = 'fwd'
+act_fun = nn.ReLU
 interval_testerror = 1
 
-batchsize = 450 # fullbatch
-no_per_class = 300
-r0=0.5
-circles = 1
+
+no_per_class = 500
+r0=0.1
+circles = 2
+sigma = 0.05
+
+batchsize = int(1.5* no_per_class) # fullbatch
 
 
-td, vd, data_X, data_y = gen_spiral_dataset(batchsize,no_per_class,r0,circles)
+td, vd, data_X, data_y = gen_spiral_dataset(batchsize,no_per_class,r0,circles, sigma)
+#plot_dataset(data_X,data_y)
+#plt.show()
 
 
 no_steps_per_epoch = 1
@@ -122,6 +127,8 @@ for i in range(no_of_initializations):
     if optimizer_type == 'SGD':
         optimizer_classical2 = torch.optim.SGD(
             model_classical2.parameters(), lr_init_classical)
+        
+    plot_decision_boundary(model_classical2, data_X, data_y)
 
     # build lr scheduler
     if lrscheduler_type == 'StepLR':
@@ -152,7 +159,7 @@ for i in range(no_of_initializations):
         # save losses3
         write_losses(f'results_data_spirals/Exp{k}_4.json', mblosses_classical2, max_length, structures=[
                     epochs_classical], errors=test_error_classical2,
-                    interval_testerror=interval_testerror, exit_flag=exit_flag4,
+                    interval_testerror=interval_testerror, times=times4,
                     grad_norms= grad_norm4,
                     its_per_epoch=no_steps_per_epoch)
 
@@ -160,12 +167,12 @@ for i in range(no_of_initializations):
         
         print(f'test error of classical training big {test_error_classical2[-1]}')
 
-        plt.plot(times4[1:], mblosses_classical2)
+        plt.plot(mblosses_classical2)
         plt.ylabel('loss')
-        plt.xlabel('time (s)')
+        plt.xlabel('iterations)')
         plt.show()
-        plt.plot(times4[1:], test_error_classical2,'o')
+        plt.plot(test_error_classical2,'o')
         plt.ylabel('test error')
-        plt.xlabel('time (s)')
+        plt.xlabel('iterations')
         plt.show()
     # next step in loop

@@ -7,3 +7,16 @@
 6: wie 1 nur mit lr 0.2 und li at 450
 7: wie 4 nur mit lr 0.1
 8: wie 4 nur mit lr 0.2
+
+Ab 15: minibatch training
+15: mbsize 45 widths=[5]
+16: mbsize 45 widths=[3,3]
+17: wie 15 mit adam
+18: wie exp9 nur mit mbsgd li nach 150
+19: wie 18 nur mit lrdec .1, li nach 100
+
+20: schwierigere spirale mit baseline [5,5]
+
+
+80:?
+81:?
