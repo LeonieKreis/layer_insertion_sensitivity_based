@@ -63,8 +63,8 @@ def tmp_net(dim_in, dim_out, hidden_layers, dim_hidden_layers, act_fun, _type, m
             dim_hidden_layers_new = [
                 dim_hidden_layers[0], dim_hidden_layers[0]]
         if hidden_layers > 1:
-            hidden_layers_new = 2 * hidden_layers - 1  # TODO
-            dim_hidden_layers_new = (2*hidden_layers-1) * \
+            hidden_layers_new = 2 * hidden_layers # - 1  # TODO
+            dim_hidden_layers_new = hidden_layers_new * \
                 [dim_hidden_layers[0]]
 
         new_kwargs_net = {'hidden_layers': hidden_layers_new,
@@ -171,6 +171,7 @@ def select_new_model(avg_grad_norm, freezed_norms, model, freezed, kwargs_net, m
                 freezed_norms_only_relevant_weights.append(freezed_norm)
 
     print(f'the averaged shadow prices  of all available positions: {freezed_norms_only_relevant_weights}')
+    sens = freezed_norms_only_relevant_weights
 
     # select layer based on different criteria ########################################################################
     if mode == 'abs max':
@@ -647,9 +648,9 @@ def select_new_model(avg_grad_norm, freezed_norms, model, freezed, kwargs_net, m
         print(f'Insert layer at position {max_index} !')
 
     if _type == 'fwd':
-        return torch.nn.Sequential(*new_model_children_list[:-1]), new_kwargs_net, child_for_return
+        return torch.nn.Sequential(*new_model_children_list[:-1]), new_kwargs_net, child_for_return, sens
     if _type == 'res2':
-        return torch.nn.Sequential(*new_model_children_list), new_kwargs_net, child_for_return
+        return torch.nn.Sequential(*new_model_children_list), new_kwargs_net, child_for_return, sens
     if _type == 'res1':
-        return torch.nn.Sequential(*new_model_children_list), new_kwargs_net, child_for_return
+        return torch.nn.Sequential(*new_model_children_list), new_kwargs_net, child_for_return, sens
 

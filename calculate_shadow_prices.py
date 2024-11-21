@@ -47,7 +47,7 @@ def calculate_shadowprices_minibatch(train_dataloader, model, freezed):
                     # print(p.grad) # uncomment if you want to see all shadow price values of the model parameters
                     # and not just an average
                     frozen[k] += torch.sum(torch.square(torch.abs(p.grad))
-                                           )/_number_of_params(p)
+                                           )/_number_of_params(p) ## NEW: if unscaled, comment out the division by _number_of_params(p)
                     k += 1
 
     # scale the frozen and unfrozen lists with by the numbers of batches

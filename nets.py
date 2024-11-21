@@ -84,11 +84,11 @@ def two_weight_resnet(dim_in, dim_out, hidden_layers=1, dim_hidden_layers=3, act
         #    return nn.Sequential(nn.Linear(dim_in, dim_out, bias=False))
     if hidden_layers == 1:
         if flatten:
-            return (nn.Sequential( nn.Linear(dim_in, dim_hidden_layers, bias=False), 
-                              nn.Linear(dim_hidden_layers, dim_out, bias=False)))
+            return nn.Sequential( nn.Linear(dim_in, dim_hidden_layers, bias=False), 
+                              nn.Linear(dim_hidden_layers, dim_out, bias=False))
         else:
-            return (nn.Sequential(nn.Flatten(), nn.Linear(dim_in, dim_hidden_layers, bias=False), 
-                              nn.Linear(dim_hidden_layers, dim_out, bias=False)))
+            return nn.Sequential(nn.Flatten(), nn.Linear(dim_in, dim_hidden_layers, bias=False), 
+                              nn.Linear(dim_hidden_layers, dim_out, bias=False))
     if isinstance(dim_hidden_layers, int):  # all hidden layers have the same width
         dim_hidden_layers = [dim_hidden_layers] * hidden_layers
     # the hidden layers have the same widths
