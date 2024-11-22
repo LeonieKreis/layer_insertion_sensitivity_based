@@ -31,7 +31,7 @@ torch.manual_seed(s)
 
 torch.set_num_threads(8)
 
-plot = True
+plot = False
 
 # Define hyperparameters
 
@@ -55,7 +55,7 @@ td, vd, data_X, data_y = gen_steps_dataset(n_points=no_points,n_steps= n_steps,n
 loss_fn = torch.nn.MSELoss()
 test_mode = 'mse'
 
-no_steps_per_epoch = 1#50
+no_steps_per_epoch = 8#50
 print('no of iterations in one epoch:', no_steps_per_epoch)
 
 end_list = []
@@ -68,6 +68,7 @@ end_list.pop()  # removes last 1 which was too much
 
 
 save_grad_norms= True
+save_heatmaps = True
 
 lr_init = 1e-2
 optimizer_type = 'SGD'
@@ -127,7 +128,7 @@ T4 = False
 
 # define no of training run instances
 
-no_of_initializations = 10  # 50
+no_of_initializations = 1  # 50
 
 # set up empty lists for saving the observed quantities
 # (besides the save to the json file)
@@ -166,7 +167,7 @@ for i in range(no_of_initializations):
     if plot:
         plot_predictor_withdataset(data_X,data_y,model_init, device='cpu',title='model_init',save=False,only_data=False)
     if T1:
-        model1, mb_losses1, test_errors_short1, test_errors1, exit_flag1, grad_norm1, times1 = layer_insertion_loop(
+        model1, mb_losses1, test_errors_short1, test_errors1, exit_flag1, grad_norm1, times1, sens1 = layer_insertion_loop(
             iters=no_iters,
             epochs=epochs,
             model=model_init,
@@ -188,9 +189,10 @@ for i in range(no_of_initializations):
             v2=False,
             save_grad_norms=save_grad_norms,
             loss_fn=loss_fn,
-            test_mode = test_mode
+            test_mode = test_mode,
+            save_heatmaps=save_heatmaps
         )
-        final_params = torch.nn.utils.parameters_to_vector(model1.parameters()).detach().numpy()
+        final_params = torch.nn.utils.parameters_to_vector(model1.parameters()).detach().numpy().tolist()
         if plot:
             plot_predictor_withdataset(data_X,data_y,model1, device='cpu',title='model1',save=False,only_data=False)
             #print(grad_norm1)
@@ -205,7 +207,7 @@ for i in range(no_of_initializations):
         write_losses(path1,
                     mb_losses1, max_length, end_list, test_errors1,
                     interval_testerror=interval_testerror, times=times1,grad_norms = grad_norm1, its_per_epoch=no_steps_per_epoch,
-                    final_params=final_params)    # save losses3
+                    final_params=final_params, sens=sens1)    # save losses3
         
 
         # full_list_of_losses_1.append(mb_losses)
@@ -226,7 +228,7 @@ for i in range(no_of_initializations):
     if T2:
         if plot:
             plot_predictor_withdataset(data_X,data_y,model_init2, device='cpu',title='model_init2',save=False,only_data=False)
-        model2, mb_losses2, test_errors_short2, test_errors2, exit_flag2, grad_norm2, times2 = layer_insertion_loop(
+        model2, mb_losses2, test_errors_short2, test_errors2, exit_flag2, grad_norm2, times2, sens2 = layer_insertion_loop(
             iters=no_iters,
             epochs=epochs,
             model=model_init2,
@@ -248,9 +250,10 @@ for i in range(no_of_initializations):
             v2=False,
             save_grad_norms=save_grad_norms,
             loss_fn=loss_fn,
-            test_mode = test_mode
+            test_mode = test_mode,
+            save_heatmaps=save_heatmaps
         )
-        final_params = torch.nn.utils.parameters_to_vector(model2.parameters()).detach().numpy()
+        final_params = torch.nn.utils.parameters_to_vector(model2.parameters()).detach().numpy().tolist()
         if plot:
             plot_predictor_withdataset(data_X,data_y,model2, device='cpu',title='model2',save=False,only_data=False)
             plt.plot(mb_losses2)
@@ -263,7 +266,7 @@ for i in range(no_of_initializations):
         # save losses2
         write_losses(f'results_data_steps/Exp{k}_2.json',
                     mb_losses2, max_length, end_list, test_errors2, interval_testerror=interval_testerror, times=times2, grad_norms = grad_norm2,
-                    its_per_epoch=no_steps_per_epoch, final_params=final_params)
+                    its_per_epoch=no_steps_per_epoch, final_params=final_params, sens=sens2)
         # full_list_of_losses_2.append(mb_losses2)
         final_testerror2.append(test_errors_short2[-1])
 
@@ -312,10 +315,11 @@ for i in range(no_of_initializations):
                                                                  print_param_flag=False,
                                                                  save_grad_norms=save_grad_norms,
                                                                  loss_fn=loss_fn,
-                                                                 test_mode = test_mode
+                                                                 test_mode = test_mode,
+                                                                 save_heatmaps=save_heatmaps
                                                                  )
         
-        final_params = torch.nn.utils.parameters_to_vector(model_classical.parameters()).detach().numpy()
+        final_params = torch.nn.utils.parameters_to_vector(model_classical.parameters()).detach().numpy().tolist()
         if plot: 
             plot_predictor_withdataset(data_X,data_y,model_classical, device='cpu',title='model_classical',save=False, only_data=False)
             plt.plot(mblosses_classical)
@@ -381,10 +385,11 @@ for i in range(no_of_initializations):
                                                                  print_param_flag=False,
                                                                  save_grad_norms=save_grad_norms,
                                                                  loss_fn=loss_fn,
-                                                                 test_mode = test_mode
+                                                                 test_mode = test_mode,
+                                                                 save_heatmaps=save_heatmaps
                                                                  )
         
-        final_params = torch.nn.utils.parameters_to_vector(model_classical2.parameters()).detach().numpy()
+        final_params = torch.nn.utils.parameters_to_vector(model_classical2.parameters()).detach().numpy().tolist()
         if plot:
             plot_predictor_withdataset(data_X,data_y,model_classical2, device='cpu',title='model_classical2',save=False, only_data=False)
             plt.plot(mblosses_classical2)
