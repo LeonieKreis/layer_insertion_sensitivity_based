@@ -18,7 +18,7 @@ def plot_loss_error_single_init(plot_error, plot_grads, log_scale, run,k, save =
         with open(f"results_data_steps/Exp{k}_1.json") as file: #abs max
             f = json.load(file)
             a_temp = f[i]['losses'] 
-            #at = f[run]['times'] 
+            at = f[run]['times'] 
             if plot_error:
                 #a_err = [f[i]['errors'] for i in f.keys()]
                 a_err = f[i]['errors']
@@ -32,7 +32,7 @@ def plot_loss_error_single_init(plot_error, plot_grads, log_scale, run,k, save =
         
         labels=['LI']
         methods = (a)
-        times = (a)
+        times = (at)
 
 
         plt.figure(figsize=(20,5))
