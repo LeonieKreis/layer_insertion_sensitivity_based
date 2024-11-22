@@ -58,10 +58,10 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
         backtr_max = start_with_backtracking
 
     if save_heatmaps:
-        heatmappathgrads=f'heatmaps/grads_{time.time()}/'
+        heatmappathgrads=f'heatmaps/grads/grads_{time.time()}/'
         os.mkdir(heatmappathgrads)
         
-        heatmappathvals=f'heatmaps/vals_{time.time()}/'
+        heatmappathvals=f'heatmaps/weights/vals_{time.time()}/'
         os.mkdir(heatmappathvals)
         
 
