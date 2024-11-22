@@ -63,14 +63,34 @@ def write_losses(path, losses, max_length, structures=None, errors=None, interva
     #                             'errors': errs,
     #                              'exit_flag': exit_flag}
             
-    data[str(number)]= {'losses': losses,
-                        'structures': structures,
-                        'errors': errs,
-                        'times': times,
-                        'grad_norms': grad_norms,
-                        'exit_flag': exit_flag,
-                        'final_params': final_params,
-                        'sens': sens}
+    # data[str(number)]= {'losses': losses,
+    #                     'structures': structures,
+    #                     'errors': errs,
+    #                     'times': times,
+    #                     'grad_norms': grad_norms,
+    #                     'exit_flag': exit_flag,
+    #                     'final_params': final_params,
+    #                     'sens': sens}
+    
+
+    number_dict = {'losses': losses}
+    if structures is not None:
+        number_dict['structures'] = structures
+    if errors is not None:
+        number_dict['errors'] = errs
+    if times is not None:
+        number_dict['times'] = times
+    if grad_norms is not None:
+        number_dict['grad_norms'] = grad_norms
+    if exit_flag is not None:
+        number_dict['exit_flag'] = exit_flag
+    if final_params is not None:
+        number_dict['final_params'] = final_params
+    if sens is not None:
+        number_dict['sens'] = sens
+
+    data[str(number)] = number_dict
+
     
     with open(path, 'w') as file:
         json.dump(data, file)
