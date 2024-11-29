@@ -18,5 +18,16 @@ Ab 15: minibatch training
 20: schwierigere spirale mit baseline [5,5]
 
 
-80:?
-81:?
+
+
+
+21: wie 15 nur mit sens und heatmap for LImax, 10 inits
+22: erstes beispiel für heatmap bl vs li, loss zeigt keinen unterschied
+23: wie 22 nur mit weiten Layern, evtl überparam
+24: wie 23 nur fullbatch (und andere hyperparam wie lr)
+
+25: wie 23 nur max vs min vs bl vs big
+26: wie 23 aber li an versch punkten
+
+80:MNIST
+81:MNIST

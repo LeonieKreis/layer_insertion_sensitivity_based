@@ -2,6 +2,11 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import torch
 import os
+import numpy as np
+import glob
+from PIL import Image
+from matplotlib.colors import LogNorm
+import io
 
 def save_weightgrads_heatmap(model, batch, e,path='heatmaps/heatmapgrads'):
     '''
@@ -64,66 +69,273 @@ def load_weights(txtpath, epoch, batch, param_num):
     weights = np.loadtxt(filename)
     return weights
 
-def gen_gif_of_heatmaps(list_vals, num, vmin, vmax,path, noepochs, nobatches):
-    epoch_curr = -1
-    batch_curr = 0
-    for i, val in enumerate(list_vals):
-        if i%nobatches == 0:
-            batch_curr = 0
-            epoch_curr += 1
-        else:
-            batch_curr += 1
-        sns.heatmap(val, vmin=vmin, vmax=vmax)
-        plt.title(f'Grads: epoch {epoch_curr}, batch {batch_curr}, param {num}')
-        plt.savefig(f'{path}_{epoch_curr}_{batch_curr}_{num}.png', format="png", bbox_inches="tight")        
-        plt.close()
+def gen_gif_of_heatmaps(list_vals, param_it, vmin, vmax,path, nobatches, log=False, grads=True, list_all2=None, param_it2=None):
+    if grads: title='Grads'
+    else: title='Vals'
+    
+    if list_all2 is None:
+        epoch_curr = -1
+        batch_curr = 0
+        for i, val in enumerate(list_vals):
+            if i%nobatches == 0:
+                batch_curr = 0
+                epoch_curr += 1
+            else:
+                batch_curr += 1
+            no_axes = len(list(param_it))
+            fig, axs = plt.subplots(nrows=1, ncols=no_axes, figsize=(3*no_axes,3))
+            plt.suptitle(f'{title}: epoch {epoch_curr}, batch {batch_curr}')
+            for j, num in enumerate(param_it):
+                if log:
+                    sns.heatmap(val[j], ax=axs[j], norm=LogNorm(vmin=vmin, vmax=vmax))
+                else:
+                    sns.heatmap(val[j], vmin=vmin, vmax=vmax, ax=axs[j])
+                    
+            fig.savefig(f'{path}_{epoch_curr}_{batch_curr}.png', format="png", bbox_inches="tight")        
+            plt.close()
+
+    else:
+        epoch_curr = -1
+        batch_curr = 0 
+        for i, (val, val2) in enumerate(zip(list_vals, list_all2)):
+            if i%nobatches == 0:
+                batch_curr = 0
+                epoch_curr += 1
+            else:
+                batch_curr += 1
+            no_axes = len(list(param_it))
+            fig, axs = plt.subplots(nrows=2, ncols=no_axes, figsize=(3*no_axes,2*3))
+            plt.suptitle(f'{title}: epoch {epoch_curr}, batch {batch_curr}')
+            for j, num in enumerate(param_it):
+                if log:
+                    sns.heatmap(val[j], ax=axs[0,j], norm=LogNorm(vmin=vmin, vmax=vmax))
+                else:
+                    sns.heatmap(val[j], vmin=vmin, vmax=vmax, ax=axs[0,j])
+            for j, num in enumerate(param_it2):
+                if log:
+                    sns.heatmap(val2[j], ax=axs[1,j], norm=LogNorm(vmin=vmin, vmax=vmax))
+                else:
+                    sns.heatmap(val2[j], vmin=vmin, vmax=vmax, ax=axs[1,j])
+            
+            fig.savefig(f'{path}_{epoch_curr}_{batch_curr}.png', format="png", bbox_inches="tight")        
+            plt.close()
 
     
 ################# main function ############################
 
-def weights_to_heatmapgif(txtpath, noepochs, nobatches, param_num, plotpath=None, delete = True):
+def weights_to_heatmapgif(txtpath, noepochs, nobatches, param_it, plotpath=None, delete = True, log=False, grads=True, txtpath2=None, param_it2=None):
     '''
     txtpath should be of the form {} as in '{heatmaps/heatmapvals_}epoch{e}_batch{b}_param{p}.txt'
     plotpath should be of the form {} as in '{heatmaps/heatmapvals/}'
     '''
+
+
     if plotpath is None:
         plotpath = txtpath
+    
+    
 
-    for num in range(param_num):
+    if txtpath2 is None:
         list_all = []
         img_array = []
         for e in range(noepochs):
             for b in range(nobatches):
-                vals_curr = load_weights(txtpath,e,b,num)
-                if len(vals_curr.shape)==1:
-                    vals_curr = vals_curr.reshape(vals_curr.shape[0],1)
-                list_all.append(vals_curr)
+                list_param = []
+                for num in param_it:
+                    vals_curr = load_weights(txtpath,e,b,num)
+                    if log:
+                        # turn values into absolute values
+                        vals_curr = np.abs(vals_curr)
+                    if len(vals_curr.shape)==1:
+                        vals_curr = vals_curr.reshape(vals_curr.shape[0],1)
+                    list_param.append(vals_curr)
+                list_all.append(list_param)
         # set vmin as min of all values and vmax as max of all values in list_all
-        vmin = min([vals.min() for vals in list_all])
-        vmax = max([vals.max() for vals in list_all])
-        gen_gif_of_heatmaps(list_all,num,  vmin, vmax, plotpath, noepochs, nobatches)
-        #for filename in sorted(glob.glob(f'{plotpath}iteration*_num{num}.png')):
+        vmin = min([vals.min() for sublist in list_all for vals in sublist])
+        if vmin == 0:
+            vmin = 1e-5
+        vmax = max([vals.max() for sublist in list_all for vals in sublist])
+        gen_gif_of_heatmaps(list_all,param_it,  vmin, vmax, plotpath, nobatches, log=log, grads=grads)
+    
         for e in range(noepochs):
             for b in range(nobatches):
-                filename = f'{plotpath}_{e}_{b}_{num}.png'
+                filename = f'{plotpath}_{e}_{b}.png'
                 img = Image.open(filename)
                 img_array.append(img)
-        img_array[0].save(f'{plotpath}param_{num}.gif', save_all=True, append_images=img_array[1:], duration=200, loop=0)
-        print(f'Movie for param {num} saved')
+        img_array[0].save(f'{plotpath}.gif', save_all=True, append_images=img_array[1:], duration=20, loop=1,optimize=True)
+        print(f'Movie for param_it saved')
         if delete:
             for e in range(noepochs):
                 for b in range(nobatches):
+                    filename = f'{plotpath}_{e}_{b}.png'
+                    os.remove(filename)
+            print(f'files for param_it deleted')
+
+    else:
+        list_all = []
+        img_array = []
+        for e in range(noepochs):
+            for b in range(nobatches):
+                list_param = []
+                for num in param_it:
+                    vals_curr = load_weights(txtpath,e,b,num)
+                    if log:
+                        # turn values into absolute values
+                        vals_curr = np.abs(vals_curr)
+                    if len(vals_curr.shape)==1:
+                        vals_curr = vals_curr.reshape(vals_curr.shape[0],1)
+                    list_param.append(vals_curr)
+                list_all.append(list_param)
+        # set vmin as min of all values and vmax as max of all values in list_all
+        vmin = min([vals.min() for sublist in list_all for vals in sublist])
+        if vmin == 0:
+            vmin = 1e-5
+        vmax = max([vals.max() for sublist in list_all for vals in sublist])
+
+        list_all2 = []
+        img_array2 = []
+        for e in range(noepochs):
+            for b in range(nobatches):
+                list_param = []
+                for num in param_it2:
+                    vals_curr = load_weights(txtpath2,e,b,num)
+                    if log:
+                        # turn values into absolute values
+                        vals_curr = np.abs(vals_curr)
+                    if len(vals_curr.shape)==1:
+                        vals_curr = vals_curr.reshape(vals_curr.shape[0],1)
+                    list_param.append(vals_curr)
+                list_all2.append(list_param)
+        # set vmin as min of all values and vmax as max of all values in list_all2
+        vmin2 = min([vals.min() for sublist in list_all2 for vals in sublist])
+        if vmin2 == 0:
+            vmin2 = 1e-5
+        vmax2 = max([vals.max() for sublist in list_all2 for vals in sublist])
+
+        vmin = min(vmin,vmin2)
+        vmax = max(vmax,vmax2)
+
+        gen_gif_of_heatmaps(list_all,param_it,  vmin, vmax, plotpath, nobatches, log=log, grads=grads, list_all2=list_all2, param_it2=param_it2)
+
+        for e in range(noepochs):
+            for b in range(nobatches):
+                filename = f'{plotpath}_{e}_{b}.png'
+                img = Image.open(filename)
+                img_array.append(img)
+        img_array[0].save(f'{plotpath}.gif', save_all=True, append_images=img_array[1:], duration=20, loop=1,optimize=True)
+        print(f'Movie for param_it saved')
+        if delete:
+            for e in range(noepochs):
+                for b in range(nobatches):
+                    filename = f'{plotpath}_{e}_{b}.png'
+                    os.remove(filename)
+            print(f'files for param_it deleted')
+
+    print('All gifs saved')
+
+def delete_png_files(noepochs_it, nobatches, num, plotpath):
+    if num is not None:
+        for e in noepochs_it:
+                for b in range(nobatches):
                     filename = f'{plotpath}_{e}_{b}_{num}.png'
                     os.remove(filename)
-            print(f'files for param {num} deleted')
+    else:
+        for e in noepochs_it:
+                for b in range(nobatches):
+                    filename = f'{plotpath}_{e}_{b}.png'
+                    os.remove(filename)
+
+    print(f'files for param {num} deleted')
     
+############## in memory #####################
+def gen_gif_of_heatmaps_in_memory(list_vals, param_it, vmin, vmax, nobatches, log=False):
+    '''
+    Generate heatmaps and save them as images in memory.
+    
+    Args:
+        list_vals: (list) list of weight values
+        param_it: (iterable) parameter indices
+        vmin: (float) minimum value for color scale
+        vmax: (float) maximum value for color scale
+        nobatches: (int) number of batches
+        log: (bool) whether to use logarithmic color scale
+    
+    Returns:
+        img_array: (list) list of images in memory
+    '''
+    img_array = []
+    epoch_curr = -1
+    batch_curr = 0
+    for i, val in enumerate(list_vals):
+        if i % nobatches == 0:
+            batch_curr = 0
+            epoch_curr += 1
+        else:
+            batch_curr += 1
+        no_axes = len(list(param_it))
+        fig, axs = plt.subplots(nrows=1, ncols=no_axes, figsize=(10, 6))
+        for j, num in enumerate(param_it):
+            if log:
+                sns.heatmap(val[j], ax=axs[j], norm=LogNorm(vmin=vmin, vmax=vmax))
+            else:
+                sns.heatmap(val[j], vmin=vmin, vmax=vmax, ax=axs[j])
+        plt.suptitle(f'Grads: epoch {epoch_curr}, batch {batch_curr}')
         
+        # Save the plot to a BytesIO object
+        buf = io.BytesIO()
+        fig.savefig(buf, format='png', bbox_inches='tight')
+        plt.close()
+        
+        # Load the image from the BytesIO object
+        buf.seek(0)
+        img = Image.open(buf)
+        img_array.append(img)
+        buf.close()
+    
+    return img_array
+
+def weights_to_heatmapgif_in_memory(txtpath, noepochs, nobatches, param_it, plotpath=None, log=False):
+    '''
+    Generate GIFs from weight values without saving intermediate images.
+    
+    Args:
+        txtpath: (str) path to the text files with weight values
+        noepochs: (int) number of epochs
+        nobatches: (int) number of batches
+        param_it: (iterable) parameter indices to process
+        plotpath: (str) path to save the GIFs
+        log: (bool) whether to use logarithmic color scale
+    '''
+    if plotpath is None:
+        plotpath = txtpath
+
+    list_all = []
+    for e in range(noepochs):
+        for b in range(nobatches):
+            list_param = []
+            for num in param_it:
+                vals_curr = load_weights(txtpath, e, b, num)
+                if log:
+                    # turn values into absolute values
+                    vals_curr = np.abs(vals_curr)
+                if len(vals_curr.shape) == 1:
+                    vals_curr = vals_curr.reshape(vals_curr.shape[0], 1)
+                list_param.append(vals_curr)
+            list_all.append(list_param)
+    
+    # Calculate vmin and vmax across all parameters, epochs, and batches
+    vmin = min([vals.min() for sublist in list_all for vals in sublist])
+    if vmin == 0:
+        vmin = 1e-5
+    vmax = max([vals.max() for sublist in list_all for vals in sublist])
+    
+    img_array = gen_gif_of_heatmaps_in_memory(list_all, param_it, vmin, vmax, nobatches, log=log)
+    
+    img_array[0].save(f'{plotpath}.gif', save_all=True, append_images=img_array[1:], duration=20, loop=0, optimize=True)
+    print(f'Movie for param_it saved')      
 
 ############## make movie out of the heatmaps for each weight (=num) separate ##########
-import os
-import numpy as np
-import glob
-from PIL import Image
+
 
 
 
@@ -148,7 +360,7 @@ def make_movie(path, num, no_epochs=None, no_batches=None):
                 img = Image.open(filename)
                 img_array.append(img)
     
-    img_array[0].save(f'{path}param_{num}.gif', save_all=True, append_images=img_array[1:], duration=200, loop=0)
+    img_array[0].save(f'{path}param_{num}.gif', save_all=True, append_images=img_array[1:], duration=20, loop=0)
     print(f'Movie for param {num} saved')
 
 
