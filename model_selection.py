@@ -171,7 +171,8 @@ def select_new_model(avg_grad_norm, freezed_norms, model, freezed, kwargs_net, m
                 freezed_norms_only_relevant_weights.append(freezed_norm)
 
     print(f'the averaged shadow prices  of all available positions: {freezed_norms_only_relevant_weights}')
-    sens = freezed_norms_only_relevant_weights
+    
+    sens = [ob.item() for ob in freezed_norms_only_relevant_weights]
 
     # select layer based on different criteria ########################################################################
     if mode == 'abs max':
