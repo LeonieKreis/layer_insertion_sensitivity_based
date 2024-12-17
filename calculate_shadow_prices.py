@@ -21,9 +21,18 @@ def calculate_shadowprices_minibatch(train_dataloader, model, freezed):
         loss_value: current value of loss function
 
     '''
+    not_frozen_big = []
+    frozen_big = []
+    with torch.no_grad():
+        for p in model.parameters():
+            if not _is_freezed(p, freezed):
+                not_frozen_big.append(torch.zeros_like(p.data))
+            else:
+                frozen_big.append(torch.zeros_like(p.data))
 
-    not_frozen = number_of_free_parameters_collected(model, freezed)*[0]
-    frozen = _number_of_frozen_parameters_collected(model, freezed)*[0]
+
+
+    
     loss_values = []
 
     for X, y in train_dataloader:
@@ -39,21 +48,22 @@ def calculate_shadowprices_minibatch(train_dataloader, model, freezed):
             for p in model.parameters():  # iterate over all model parameters
                 # if parameter is not frozen, append gradient to list
                 if not _is_freezed(p, freezed):
-                    not_frozen[kk] += torch.sum(torch.square(
-                        torch.abs(p.grad)))/_number_of_params(p)
+                    #old not_frozen[kk] += torch.sum(torch.square(p.grad))#/_number_of_params(p) ## NEW: if unscaled, comment out the division by _number_of_params(p)
+                    not_frozen_big[kk] += p.grad
                     kk += 1
                 # if parameters is frozen, append one averaged gradient value to list
                 if _is_freezed(p, freezed):
                     # print(p.grad) # uncomment if you want to see all shadow price values of the model parameters
                     # and not just an average
-                    frozen[k] += torch.sum(torch.square(torch.abs(p.grad))
-                                           )/_number_of_params(p) ## NEW: if unscaled, comment out the division by _number_of_params(p)
+                    #old frozen[k] += torch.sum(torch.square(p.grad))#/_number_of_params(p) ## NEW: if unscaled, comment out the division by _number_of_params(p)
+                    frozen_big[k] += p.grad
                     k += 1
 
     # scale the frozen and unfrozen lists with by the numbers of batches
     scale = 1/len(loss_values)
-    frozen = [scale*x for x in frozen]
-    not_frozen = [scale*x for x in not_frozen]
+    # square and sum up the p.grads over all its from big into frozen, not_frozen
+    frozen = [torch.sum(torch.square(scale*p)) for p in frozen_big]
+    not_frozen = [torch.sum(torch.square(scale*p)) for p in not_frozen_big]
 
     return not_frozen, frozen, loss_values
 
