@@ -541,8 +541,8 @@ def select_new_model(avg_grad_norm, freezed_norms, model, freezed, kwargs_net, m
             max_index = max_indices[0]
 
         if len(max_indices) > 1:  # TODO: handle insertion of multiple layers
-            # for now we only choose the last one
-            max_index = max_indices[-1]
+            # for now we only choose the first one
+            max_index = max_indices[0]
 
         if _type == 'fwd':
             child_for_return = 0
