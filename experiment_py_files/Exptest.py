@@ -10,7 +10,15 @@ from torch.utils.data import DataLoader
 from torchvision import datasets
 from torchvision.transforms import ToTensor
 
-sys.path.append('../layer_insertion_sensitivity_based')
+#sys.path.append('../layer_insertion_sensitivity_based')
+# Get the directory of the current file
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Construct the path to the parent directory
+parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
+
+# Add the constructed path to the Python path
+sys.path.append(parent_dir)
 
 from layer_insertion_loop import layer_insertion_loop
 from train_and_test_ import train, check_testerror
