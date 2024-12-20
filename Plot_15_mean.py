@@ -1,11 +1,12 @@
 import numpy as np
 import json
 import matplotlib.pyplot as plt
+import matplotlib
 import torch
 import plot_helper
 from utils import ema_np, ema2_np
 
-k = 15100#15
+k = 15100#15 #151 for new sens comp
 
 run = "9"
 i=run
@@ -22,6 +23,8 @@ def plot_loss_error_mean(plot_error, plot_grads, log_scale, run,k, save = False)
         with open(f"results_data_spirals/Exp{k}_1.json") as file: #abs max
             f = json.load(file)
             a_temp = [f[i]['losses'] for i in f.keys()] 
+            for i in range(len(a_temp)):
+                if len(a_temp[i])!=18500: a_temp[i]=a_temp[i]+list(np.zeros(18500-len(a_temp[i])))
             at = f[run]['times'] 
             if plot_error:
                 #a_err = [f[i]['errors'] for i in f.keys()]
@@ -36,6 +39,8 @@ def plot_loss_error_mean(plot_error, plot_grads, log_scale, run,k, save = False)
         with open(f"results_data_spirals/Exp{k}_2.json") as file: # abs min
             f = json.load(file)
             a_temp = [f[i]['losses'] for i in f.keys()]
+            for i in range(len(a_temp)):
+                if len(a_temp[i])!=18500: a_temp[i]=a_temp[i]+list(np.zeros(18500-len(a_temp[i])))
             at2 = f[run]['times'] 
             if plot_error:
                 #a_err = [f[i]['errors'] for i in f.keys()]
@@ -62,7 +67,7 @@ def plot_loss_error_mean(plot_error, plot_grads, log_scale, run,k, save = False)
             print(f'shape of a {a3.shape}')
 
 
-        with open(f"results_data_spirals/Exp{k}_4.json") as file: # baseline
+        with open(f"results_data_spirals/Exp{k}_4.json") as file: #big cnn
             f = json.load(file)
             a_temp = [f[i]['losses'] for i in f.keys()]
             a_temp[1]=a_temp[1]+list(np.zeros(18500-len(a_temp[1])))
@@ -81,14 +86,16 @@ def plot_loss_error_mean(plot_error, plot_grads, log_scale, run,k, save = False)
             print(f'shape of a {a4.shape}')
     
 
-        labels = ['LI','LI min', 'baseline','big']
+        labels = ['LI', 'FNN1','FNN2']
 
-        methods = (a,a2,a3,a4)
-        times = (at,at2,at3,at4)
+        methods = (a,a3,a4)
+        times = (at,at3,at4)
 
-
-        plt.figure(figsize=(20,5))
-
+        matplotlib.rc('ytick', labelsize=12)
+        matplotlib.rc('xtick', labelsize=12)
+        fig, axes = plt.subplots(2, gridspec_kw={'height_ratios': [5,5]})
+        fig.set_size_inches((20,10))
+        
         # first subplot plot losses
         colors_ = ['b', 'r', 'y','g']  # , 'g', 'c', 'm', 'k']
         for i, (aa, ta) in enumerate(zip(methods, times)):
@@ -104,25 +111,22 @@ def plot_loss_error_mean(plot_error, plot_grads, log_scale, run,k, save = False)
             else:
                 end_weg = None
             #plt.plot(ta[1:end_weg],mean1, colors_[i], label=label)
-            plt.plot(mean1, colors_[i], label=label)
-            plt.vlines(450*10, 0, 1, colors='gray', linestyles='dashed')
-            plt.legend()
+            axes[0].plot(mean1, colors_[i], label=label)
+            axes[0].vlines(450*10, 0, 1, colors='gray', linestyles='dashed')
+            axes[0].legend()
             #plt.ylim([0, 2])
             #ma = max([a.shape[1] for a in methods])
             #plt.xlim([0, ma])
-            plt.xlabel('its')
-            plt.ylabel(' (minibatch) loss')
+            axes[0].set_xlabel('its')
+            axes[0].set_ylabel(' (minibatch) loss')
             if log_scale:
-                plt.yscale('log')
-        if save==True:
-            plt.savefig(f'figs/mbloss_{k}_{run}.pdf', format="pdf", bbox_inches="tight")
-
+                axes[0].set_yscale('log')
+        
 
 
         # plot errors
         if plot_error:
-            methods_e = (ae,ae2,ae3,ae4)
-            plt.figure(figsize=(20,5))
+            methods_e = (ae,ae3,ae4)
             colors_ = ['b', 'r', 'y','g']  # , 'g', 'c', 'm', 'k']
             for i, (aa, ta) in enumerate(zip(methods_e, times)):
                 #print(aa.shape)
@@ -139,22 +143,22 @@ def plot_loss_error_mean(plot_error, plot_grads, log_scale, run,k, save = False)
                     end_weg = None
                 #plt.plot(ta[0:end_weg], mean1, colors_[i] + 'o', label=label,
                 #            markersize=5)  # , linestyle='o')
-                plt.plot( mean1, colors_[i] + 'o', label=label,
+                axes[1].plot( mean1, colors_[i] + 'o', label=label,
                             markersize=5)  # , linestyle='o')
-                plt.vlines(450, 0, 100, colors='gray', linestyles='dashed')
-                plt.legend()
-                plt.ylim([0, 100])
+                axes[1].vlines(450, 0, 100, colors='gray', linestyles='dashed')
+                axes[1].legend()
+                axes[1].set_ylim([0, 100])
                 #ma = max([a.shape[1] for a in methods])
                 # plt.xlim([0, ma])
-                plt.xlabel('epochs')
-                plt.ylabel('test error')
+                axes[1].set_xlabel('epochs')
+                axes[1].set_ylabel('test error')
             #plt.show()
 
 
 
-        plt.tight_layout()
+        fig.tight_layout()
         if save==True and plot_error:
-            plt.savefig(f'figs/testerror_{k}_{run}.pdf', format="pdf", bbox_inches="tight")
+            fig.savefig(f'figs/testerror_{k}_{run}.pdf', format="pdf", bbox_inches="tight")
         #plt.savefig('tikzpicture_plots/fig_27.pdf', format="pdf", bbox_inches="tight")
         plt.show()
         

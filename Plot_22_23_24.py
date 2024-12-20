@@ -10,12 +10,12 @@ k = 24 # 22 23 24 possible
 
 
 plot_error=True
-
+plot_grads= True
 log_scale = True
 
 
-def plot_loss_error_single_init(k,li_epoch ,plot_error=True, log_scale=True, run="0", save = False):
-    plot_grads = False
+def plot_loss_error_single_init(k,li_epoch ,plot_error=True,plot_grads=False, log_scale=True, run="0", save = False):
+    avg = 0.99 # 0.9
     if True:
         with open(f"results_data_spirals/Exp{k}_1.json") as file: #abs max
             f = json.load(file)
@@ -31,6 +31,7 @@ def plot_loss_error_single_init(k,li_epoch ,plot_error=True, log_scale=True, run
             if plot_error:
                 ae = np.array(a_err)
             print(f'shape of a {a.shape}')
+            a_sens = f[run]['sens']
 
 
         with open(f"results_data_spirals/Exp{k}_3.json") as file: # baseline
@@ -41,8 +42,7 @@ def plot_loss_error_single_init(k,li_epoch ,plot_error=True, log_scale=True, run
             if plot_error:
                 #a_err = [f[i]['errors'] for i in f.keys()]
                 a_err = f[run]['errors']
-            if plot_grads:
-                a_grad = f[run]['grad_norms']
+            
             a3 = np.array(a_temp)
             if plot_error:
                 ae3 = np.array(a_err)
@@ -82,6 +82,7 @@ def plot_loss_error_single_init(k,li_epoch ,plot_error=True, log_scale=True, run
             #plt.xlim([0, ma])
             plt.xlabel('its')
             plt.ylabel(' (minibatch) loss')
+            plt.title(f'with sensitivities {a_sens}')
             if log_scale:
                 plt.yscale('log')
         if save==True:
@@ -120,6 +121,22 @@ def plot_loss_error_single_init(k,li_epoch ,plot_error=True, log_scale=True, run
                 plt.ylabel('test error')
             #plt.show()
 
+        if plot_grads:
+            labels1 = ['W1','b1','W2','b2','W3','b3','W4']
+            # optional:remove biases from grad structure?
+            
+            plt.figure(figsize=(20,5))
+            for i, pg in enumerate(a_grad[1]):
+                if avg is not None:
+                    pg = ema2_np(pg, avg)
+                plt.plot(pg, label=labels1[i])
+            
+            plt.legend()
+            plt.yscale('log')
+            plt.xlabel('iterations')
+            plt.ylabel('weight grad norms')
+            
+
 
 
         plt.tight_layout()
@@ -131,4 +148,4 @@ def plot_loss_error_single_init(k,li_epoch ,plot_error=True, log_scale=True, run
 ks = [22,23,24]
 li_epochs = [0,0,0]
 
-plot_loss_error_single_init(k, 0, plot_error, log_scale, run="0", save = False)
+plot_loss_error_single_init(k, 0, plot_error,plot_grads, log_scale, run="0", save = False)

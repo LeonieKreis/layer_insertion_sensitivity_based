@@ -5,19 +5,20 @@ import torch
 import plot_helper
 from utils import ema_np, ema2_np
 
-k = 15100
+k = 151#00
 
-run = "9"
-i=run
+#run = "3" #"9"
+#i=run
 
 plot_error=True
-plot_grads = False
+plot_grads = True
 log_scale = True
 
 save = False
 
 def plot_loss_error_single_init(plot_error, plot_grads, log_scale, run,k, save = False):
     i=run
+    avg = 0.9 # 0.9
     if True:
         with open(f"results_data_spirals/Exp{k}_1.json") as file: #abs max
             f = json.load(file)
@@ -40,8 +41,7 @@ def plot_loss_error_single_init(plot_error, plot_grads, log_scale, run,k, save =
             if plot_error:
                 #a_err = [f[i]['errors'] for i in f.keys()]
                 a_err = f[i]['errors']
-            if plot_grads:
-                a_grad = f[run]['grad_norms']
+            
             a2 = np.array(a_temp)
             if plot_error:
                 ae2 = np.array(a_err)
@@ -54,8 +54,7 @@ def plot_loss_error_single_init(plot_error, plot_grads, log_scale, run,k, save =
             if plot_error:
                 #a_err = [f[i]['errors'] for i in f.keys()]
                 a_err = f[i]['errors']
-            if plot_grads:
-                a_grad = f[run]['grad_norms']
+            
             a3 = np.array(a_temp)
             if plot_error:
                 ae3 = np.array(a_err)
@@ -69,18 +68,17 @@ def plot_loss_error_single_init(plot_error, plot_grads, log_scale, run,k, save =
             if plot_error:
                 #a_err = [f[i]['errors'] for i in f.keys()]
                 a_err = f[i]['errors']
-            if plot_grads:
-                a_grad = f[run]['grad_norms']
+            
             a4 = np.array(a_temp)
             if plot_error:
                 ae4 = np.array(a_err)
             print(f'shape of a {a4.shape}')
     
 
-        labels = ['LI','LI min', 'baseline','big']
+        labels = ['LI', 'baseline']#['LI','LI min', 'baseline','big']
 
-        methods = (a,a2,a3,a4)
-        times = (at,at2,at3,at4)
+        methods = (a,a3)#(a,a2,a3,a4)
+        times = (at,at3)#(at,at2,at3,at4)
 
 
         plt.figure(figsize=(20,5))
@@ -100,6 +98,8 @@ def plot_loss_error_single_init(plot_error, plot_grads, log_scale, run,k, save =
             else:
                 end_weg = None
             #plt.plot(ta[1:end_weg],mean1, colors_[i], label=label)
+            if avg is not None:
+                mean1 = ema2_np(mean1, avg)
             plt.plot(mean1, colors_[i], label=label)
             plt.vlines(450*10, 0, 1, colors='gray', linestyles='dashed')
             plt.legend()
@@ -117,7 +117,7 @@ def plot_loss_error_single_init(plot_error, plot_grads, log_scale, run,k, save =
 
         # plot errors
         if plot_error:
-            methods_e = (ae,ae2,ae3,ae4)
+            methods_e = (ae,ae3)#(ae,ae2,ae3,ae4)
             plt.figure(figsize=(20,5))
             colors_ = ['b', 'r', 'y','g']  # , 'g', 'c', 'm', 'k']
             for i, (aa, ta) in enumerate(zip(methods_e, times)):
@@ -146,6 +146,33 @@ def plot_loss_error_single_init(plot_error, plot_grads, log_scale, run,k, save =
                 plt.ylabel('test error')
             #plt.show()
 
+        if plot_grads:  # limax
+            only_weights = True
+            labels0 = ['W1','b1', 'W2']
+            labels1 = ['W1','b1','W2','b2','W3']
+            # optional:remove biases from grad structure?
+            
+            plt.figure(figsize=(20,5))
+            for i, pg in enumerate(a_grad[0]):
+                if avg is not None:
+                    pg = ema2_np(pg, avg)
+                if only_weights and i%2==1:
+                    continue
+                plt.plot(pg, label=labels0[i])
+            no_its0 = len(a_grad[0][0])
+            no_its1 = len(a_grad[1][0])
+            for i,pg in enumerate(a_grad[1]):
+                if avg is not None:
+                    pg = ema2_np(pg, avg)
+                if only_weights and i%2==1:
+                    continue
+                plt.plot(range(no_its0, no_its0 + no_its1),pg, label=labels1[i])
+            plt.legend()
+            plt.yscale('log')
+            plt.xlabel('iterations')
+            plt.ylabel('weight grad norms')
+            
+
 
 
         plt.tight_layout()
@@ -155,4 +182,5 @@ def plot_loss_error_single_init(plot_error, plot_grads, log_scale, run,k, save =
         plt.show()
         
 for run in ["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38"]:
+    print(run)
     plot_loss_error_single_init(plot_error, plot_grads, log_scale, run,k, save)

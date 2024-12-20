@@ -26,8 +26,10 @@ Ab 15: minibatch training
 23: wie 22 nur mit weiten Layern, evtl überparam
 24: wie 23 nur fullbatch (und andere hyperparam wie lr)
 
+todo
 25: wie 23 nur max vs min vs bl vs big
 26: wie 23 aber li an versch punkten
 
 80:MNIST
 81:MNIST
+82: ist nix
