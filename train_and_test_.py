@@ -69,6 +69,10 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
     test_err_list = []
     times = [0]
 
+    test_err = check_testerror(test_dataloader, model, test_mode=test_mode)
+    
+    print(f'test error before training is {test_err}')
+
     if use_adaptive_lr:
         omega = 10
         discont = .995
@@ -105,7 +109,7 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
                 lr = optimizer.param_groups[0]['lr']
                 for p in model.parameters():
                     grad_norms_layerwise[layer].append(
-                        lr*torch.square(p.grad).sum().numpy())
+                        lr*torch.square(p.grad).sum().numpy()) # old was lr after norm
                     layer += 1
                 for p in model.parameters():
                     norm += torch.square(p.grad).sum()
@@ -156,7 +160,7 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
             if e % check_testerror_between == 0:
                 test_err = check_testerror(test_dataloader, model, test_mode=test_mode)
                 test_err_list.append(test_err)
-                print(f'(dataset)error at epoch {e} is {test_err}')
+                print(f'test error at epoch {e} is {test_err}')
                 if test_err <= wanted_testerror:
                     exit_flag = 1
                     return mb_losses, optimizer.param_groups[0]['lr'], test_err_list, exit_flag, grad_norms_layerwise, times
