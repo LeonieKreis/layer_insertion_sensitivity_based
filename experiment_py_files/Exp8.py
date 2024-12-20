@@ -20,7 +20,7 @@ from spirals_data_new import gen_spiral_dataset
 # for checking the progress of the training in the terminal, use the bash command: jp length filename.json
 # to see how many runs are already saved
 
-k = 88
+k = 8888
 
 # seed
 s=1
@@ -169,7 +169,7 @@ for i in range(no_of_initializations):
     # train ali 1
     print('training on first ali')
     if T1:
-        model1, mb_losses1, test_errors_short1, test_errors1, exit_flag1, grad_norm1, times1 = layer_insertion_loop(
+        model1, mb_losses1, test_errors_short1, test_errors1, exit_flag1, grad_norm1, times1, sens1 = layer_insertion_loop(
             iters=no_iters,
             epochs=epochs,
             model=model_init,
@@ -196,7 +196,7 @@ for i in range(no_of_initializations):
         # save losses1 and final accuracy1
         write_losses(path1,
                      mb_losses1, max_length, end_list, test_errors1,
-                     interval_testerror=interval_testerror, times=times1,grad_norms = grad_norm1, its_per_epoch=no_steps_per_epoch)    # save losses3
+                     interval_testerror=interval_testerror, times=times1,grad_norms = grad_norm1, its_per_epoch=no_steps_per_epoch, sens=sens1)    # save losses3
         epochs[0]=epochs[0]+100
         epochs[1]=epochs[1]-100
         
@@ -214,7 +214,7 @@ for i in range(no_of_initializations):
     # train ali 2
     print('training on second ali')
     if T2:
-        model2, mb_losses2, test_errors_short2, test_errors2, exit_flag2, grad_norm2, times2 = layer_insertion_loop(
+        model2, mb_losses2, test_errors_short2, test_errors2, exit_flag2, grad_norm2, times2, sens2 = layer_insertion_loop(
             iters=no_iters,
             epochs=epochs,
             model=model_init2,
@@ -240,7 +240,7 @@ for i in range(no_of_initializations):
         # save losses2
         write_losses(f'results_data_spirals/Exp{k}_2.json',
                      mb_losses2, max_length, end_list, test_errors2, interval_testerror=interval_testerror, times=times2, grad_norms = grad_norm2,
-                     its_per_epoch=no_steps_per_epoch)
+                     its_per_epoch=no_steps_per_epoch, sens=sens2)
         # full_list_of_losses_2.append(mb_losses2)
         final_testerror2.append(test_errors_short2[-1])
         epochs[0]=epochs[0]+100
@@ -261,7 +261,7 @@ for i in range(no_of_initializations):
     # train ali 2
     print('training on second ali')
     if T3:
-        model2, mb_losses2, test_errors_short2, test_errors2, exit_flag2, grad_norm2, times2 = layer_insertion_loop(
+        model2, mb_losses2, test_errors_short2, test_errors2, exit_flag2, grad_norm2, times2, sens2 = layer_insertion_loop(
             iters=no_iters,
             epochs=epochs,
             model=model_init2,
@@ -287,7 +287,7 @@ for i in range(no_of_initializations):
         # save losses2
         write_losses(f'results_data_spirals/Exp{k}_3.json',
                      mb_losses2, max_length, end_list, test_errors2, interval_testerror=interval_testerror, times=times2, grad_norms = grad_norm2,
-                     its_per_epoch=no_steps_per_epoch)
+                     its_per_epoch=no_steps_per_epoch, sens=sens2)
         # full_list_of_losses_2.append(mb_losses2)
         final_testerror2.append(test_errors_short2[-1])
         epochs[0]=epochs[0]+100
@@ -308,7 +308,7 @@ for i in range(no_of_initializations):
     # train ali 2
     print('training on second ali')
     if T4:
-        model2, mb_losses2, test_errors_short2, test_errors2, exit_flag2, grad_norm2, times2 = layer_insertion_loop(
+        model2, mb_losses2, test_errors_short2, test_errors2, exit_flag2, grad_norm2, times2, sens2 = layer_insertion_loop(
             iters=no_iters,
             epochs=epochs,
             model=model_init2,
@@ -334,7 +334,7 @@ for i in range(no_of_initializations):
         # save losses2
         write_losses(f'results_data_spirals/Exp{k}_4.json',
                      mb_losses2, max_length, end_list, test_errors2, interval_testerror=interval_testerror, times=times2, grad_norms = grad_norm2,
-                     its_per_epoch=no_steps_per_epoch)
+                     its_per_epoch=no_steps_per_epoch, sens=sens2)
         # full_list_of_losses_2.append(mb_losses2)
         final_testerror2.append(test_errors_short2[-1])
         epochs[0]=epochs[0]+100
@@ -354,7 +354,7 @@ for i in range(no_of_initializations):
     # train ali 2
     print('training on second ali')
     if T5:
-        model2, mb_losses2, test_errors_short2, test_errors2, exit_flag2, grad_norm2, times2 = layer_insertion_loop(
+        model2, mb_losses2, test_errors_short2, test_errors2, exit_flag2, grad_norm2, times2, sens2 = layer_insertion_loop(
             iters=no_iters,
             epochs=epochs,
             model=model_init2,
@@ -380,7 +380,7 @@ for i in range(no_of_initializations):
         # save losses2
         write_losses(f'results_data_spirals/Exp{k}_5.json',
                      mb_losses2, max_length, end_list, test_errors2, interval_testerror=interval_testerror, times=times2, grad_norms = grad_norm2,
-                     its_per_epoch=no_steps_per_epoch)
+                     its_per_epoch=no_steps_per_epoch, sens=sens2)
         # full_list_of_losses_2.append(mb_losses2)
         final_testerror2.append(test_errors_short2[-1])
         epochs[0]=epochs[0]+100
@@ -400,7 +400,7 @@ for i in range(no_of_initializations):
     # train ali 2
     print('training on second ali')
     if T6:
-        model2, mb_losses2, test_errors_short2, test_errors2, exit_flag2, grad_norm2, times2 = layer_insertion_loop(
+        model2, mb_losses2, test_errors_short2, test_errors2, exit_flag2, grad_norm2, times2, sens2 = layer_insertion_loop(
             iters=no_iters,
             epochs=epochs,
             model=model_init2,
@@ -426,7 +426,7 @@ for i in range(no_of_initializations):
         # save losses2
         write_losses(f'results_data_spirals/Exp{k}_6.json',
                      mb_losses2, max_length, end_list, test_errors2, interval_testerror=interval_testerror, times=times2, grad_norms = grad_norm2,
-                     its_per_epoch=no_steps_per_epoch)
+                     its_per_epoch=no_steps_per_epoch, sens=sens2)
         # full_list_of_losses_2.append(mb_losses2)
         final_testerror2.append(test_errors_short2[-1])
         epochs[0]=epochs[0]+100
@@ -446,7 +446,7 @@ for i in range(no_of_initializations):
     # train ali 2
     print('training on second ali')
     if T7:
-        model2, mb_losses2, test_errors_short2, test_errors2, exit_flag2, grad_norm2, times2 = layer_insertion_loop(
+        model2, mb_losses2, test_errors_short2, test_errors2, exit_flag2, grad_norm2, times2, sens2 = layer_insertion_loop(
             iters=no_iters,
             epochs=epochs,
             model=model_init2,
@@ -472,7 +472,7 @@ for i in range(no_of_initializations):
         # save losses2
         write_losses(f'results_data_spirals/Exp{k}_7.json',
                      mb_losses2, max_length, end_list, test_errors2, interval_testerror=interval_testerror, times=times2, grad_norms = grad_norm2,
-                     its_per_epoch=no_steps_per_epoch)
+                     its_per_epoch=no_steps_per_epoch, sens=sens2)
         # full_list_of_losses_2.append(mb_losses2)
         final_testerror2.append(test_errors_short2[-1])
         epochs[0]=epochs[0]+100
@@ -492,7 +492,7 @@ for i in range(no_of_initializations):
     # train ali 2
     print('training on second ali')
     if T8:
-        model2, mb_losses2, test_errors_short2, test_errors2, exit_flag2, grad_norm2, times2 = layer_insertion_loop(
+        model2, mb_losses2, test_errors_short2, test_errors2, exit_flag2, grad_norm2, times2, sens2 = layer_insertion_loop(
             iters=no_iters,
             epochs=epochs,
             model=model_init2,
@@ -518,7 +518,7 @@ for i in range(no_of_initializations):
         # save losses2
         write_losses(f'results_data_spirals/Exp{k}_8.json',
                      mb_losses2, max_length, end_list, test_errors2, interval_testerror=interval_testerror, times=times2, grad_norms = grad_norm2,
-                     its_per_epoch=no_steps_per_epoch)
+                     its_per_epoch=no_steps_per_epoch, sens=sens2)
         # full_list_of_losses_2.append(mb_losses2)
         final_testerror2.append(test_errors_short2[-1])
 

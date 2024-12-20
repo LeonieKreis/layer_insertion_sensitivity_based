@@ -34,6 +34,7 @@ run = "0"
 plot_error=True
 plot_grads = True
 log_scale = True
+avg = None
 
 with open(f"results_data_spirals/Exp{k}_1.json") as file:
     f = json.load(file)
@@ -150,6 +151,27 @@ if plot_error:
         axes[1].set_ylabel('test error (%)', fontsize=20)
     #plt.show()
 
+if plot_grads and k==6:
+    labels0 = ['W1','b1', 'W2','b2']
+    labels1 = ['W1','b1','W2','b2','W3','b3']
+    # optional:remove biases from grad structure?
+            
+    plt.figure(figsize=(20,5))
+    for i, pg in enumerate(a_grad[0]):
+        print(i)
+        if avg is not None:
+            pg = ema2_np(pg, avg)
+        plt.plot(pg, label=labels0[i])
+    no_its0 = len(a_grad[0][0])
+    no_its1 = len(a_grad[1][0])
+    for i,pg in enumerate(a_grad[1]):
+        if avg is not None:
+            pg = ema2_np(pg, avg)
+        plt.plot(range(no_its0, no_its0 + no_its1),pg, label=labels1[i])
+    plt.legend()
+    plt.yscale('log')
+    plt.xlabel('iterations')
+    plt.ylabel('weight grad norms')
 
 
 plt.tight_layout()

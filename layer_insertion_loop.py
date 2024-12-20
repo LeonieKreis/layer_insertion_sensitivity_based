@@ -77,7 +77,7 @@ def layer_insertion_loop(
         if optimizer_type == 'SGD':
             optimizer = torch.optim.SGD(model.parameters(), lr)
         if optimizer_type == 'Adam':
-            optimizer = torch.optim.Adam(model.parameters(), lr)
+            optimizer = torch.optim.Adam(model.parameters(), lr, weight_decay=5e-3)
 
         # build lr scheduler
         if lrschedule_type == 'StepLR':
@@ -184,6 +184,8 @@ def layer_insertion_loop(
     # build optimizer
     if optimizer_type == 'SGD':
         optimizer = torch.optim.SGD(model.parameters(), lr)
+    if optimizer_type == 'Adam':
+        optimizer = torch.optim.Adam(model.parameters(),lr, weight_decay=5e-3)
 
     # build lr scheduler
     if lrschedule_type == 'StepLR':

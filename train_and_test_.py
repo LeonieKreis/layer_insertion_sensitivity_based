@@ -1,6 +1,10 @@
 import torch
 import time 
 import backtracking
+import os
+import numpy as np
+
+from heatmap import save_weightgrads_heatmap, save_weightvalues_heatmap
 
 
 def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerror=0.,
@@ -9,7 +13,10 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
           test_dataloader=None,
           print_param_flag=False,
           save_grad_norms=False,
-          use_adaptive_lr=False):
+          use_adaptive_lr=False,
+          loss_fn=torch.nn.CrossEntropyLoss(),
+          test_mode = '01',
+          save_heatmaps=False):
     '''
     implements (optionally) frozen-parameter constrained training for a feedforward net.
 
@@ -27,6 +34,10 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
         test_dataloader: iterable from pytorch containing the test data
         print_param_flag (default False): if True, prints the parameter gradients for the first 10 epochs
         save_grad_norms: (bool) default False. If True, saves the layerwise averaged squared norm of the gradient in each step.
+        use_adaptive_lr: (bool) default False. If True, uses adaptive lr for the training
+        loss_fn: loss function, default torch.nn.CrossEntropyLoss()
+        test_mode: '01' or 'mse'. If '01', the test error is computed as classification error, if 'mse', the test error is computed as mse.
+        save_heatmaps: (bool) default False. If True, saves the heatmaps of the gradients of the weights in each step.
 
     Out:
         mb_losses (list): list of all minibatch losses during training
@@ -46,9 +57,21 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
         # no of epochs in the beginning where we use backtracking
         backtr_max = start_with_backtracking
 
+    if save_heatmaps:
+        heatmappathgrads=f'heatmaps/grads/grads_{time.time()}/'
+        os.mkdir(heatmappathgrads)
+        
+        heatmappathvals=f'heatmaps/weights/vals_{time.time()}/'
+        os.mkdir(heatmappathvals)
+        
+
     mb_losses = []
     test_err_list = []
     times = [0]
+
+    test_err = check_testerror(test_dataloader, model, test_mode=test_mode)
+    
+    print(f'test error before training is {test_err}')
 
     if use_adaptive_lr:
         omega = 10
@@ -63,8 +86,22 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
             #print(X.shape)
             #print(y.shape)
             model.zero_grad()
-            loss = torch.nn.CrossEntropyLoss()(model(X), y)
+            loss = loss_fn(model(X), y)
             loss.backward()
+
+            if save_heatmaps:
+                # save heatmaps of gradients and values
+                #save_weightgrads_heatmap(model, batch, e, path=heatmappathgrads)
+                #save_weightvalues_heatmap(model, batch, e, path=heatmappathvals)
+                #save weights and grads for heatmapplotting later
+                with torch.no_grad():
+                    for i, p in enumerate(model.parameters()):
+                        filename = f'{heatmappathvals}epoch{e}_batch{batch}_param{i}.txt'
+                        np.savetxt(filename, p.data.detach().numpy())
+                        filename = f'{heatmappathgrads}epoch{e}_batch{batch}_param{i}.txt'
+                        np.savetxt(filename, p.grad.data.detach().numpy())
+               
+
 
             if save_grad_norms:
                 norm = 0
@@ -72,7 +109,7 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
                 lr = optimizer.param_groups[0]['lr']
                 for p in model.parameters():
                     grad_norms_layerwise[layer].append(
-                        lr*torch.square(p.grad).sum().numpy())
+                        lr*torch.square(p.grad).sum().numpy()) # old was lr after norm
                     layer += 1
                 for p in model.parameters():
                     norm += torch.square(p.grad).sum()
@@ -104,7 +141,7 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
                         step_norm_sq=torch.tensor(0.)
                         for p in model.parameters():
                             step_norm_sq.add_((p.grad ** 2).sum())
-                        loss_new = torch.nn.CrossEntropyLoss()(model(X), y)#loss_fn(model(data_x[batch]), data_y[batch])
+                        loss_new = loss_fn(model(X), y)#loss_fn(model(data_x[batch]), data_y[batch])
 
                         omega_new = 2 * (loss_new - loss + lr *
                                         step_norm_sq) / (lr ** 2 * step_norm_sq)
@@ -121,9 +158,9 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
 
         if check_testerror_between is not None:
             if e % check_testerror_between == 0:
-                test_err = check_testerror(test_dataloader, model)
+                test_err = check_testerror(test_dataloader, model, test_mode=test_mode)
                 test_err_list.append(test_err)
-                print(f'(dataset)error at epoch {e} is {test_err}')
+                print(f'test error at epoch {e} is {test_err}')
                 if test_err <= wanted_testerror:
                     exit_flag = 1
                     return mb_losses, optimizer.param_groups[0]['lr'], test_err_list, exit_flag, grad_norms_layerwise, times
@@ -131,7 +168,7 @@ def train(model, train_dataloader, epochs, optimizer, scheduler, wanted_testerro
     return mb_losses, optimizer.param_groups[0]['lr'], test_err_list, exit_flag, grad_norms_layerwise, times
 
 
-def check_testerror(test_dataloader, model):
+def check_testerror(test_dataloader, model, test_mode='01'):
     '''
     computes the test error of a model wrt the given test data. the test error is returned between
     100(= all wrong) and 0(=all correct).
@@ -143,19 +180,29 @@ def check_testerror(test_dataloader, model):
     Out:
         test_err (float): test error between 100 and 0 in %.
     '''
-    correct = 0
-    #no_data = test_dataloader.batch_size
-    i = 0
-    with torch.no_grad():
-        for X, y in test_dataloader:
-            no_data = X.shape[0]
-            pred = model(X)
+    if test_mode == '01':
+        correct = 0
+        #no_data = test_dataloader.batch_size
+        i = 0
+        with torch.no_grad():
+            for X, y in test_dataloader:
+                no_data = X.shape[0]
+                pred = model(X)
 
-            # dim=1 for image class, 0 for spirals
-            correct += (pred.argmax(dim=1) == y).type(torch.float).sum().item()
-            i += 1
+                # dim=1 for image class, 0 for spirals
+                correct += (pred.argmax(dim=1) == y).type(torch.float).sum().item()
+                i += 1
 
-        correct = correct / (i * no_data)
-        test_err = 100 - 100 * correct
+            correct = correct / (i * no_data)
+            test_err = 100 - 100 * correct
+
+    elif test_mode == 'mse':
+        with torch.no_grad():
+            loss_fn = torch.nn.MSELoss()
+            test_err = 0
+            for X, y in test_dataloader:
+                pred = model(X)
+                test_err += loss_fn(pred, y).item()
+            #test_err = test_err / len(test_dataloader)
 
     return test_err
