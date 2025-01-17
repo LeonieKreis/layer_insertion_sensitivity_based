@@ -3,19 +3,28 @@ import json
 import matplotlib.pyplot as plt
 import matplotlib
 
-fileno = 262#261
+fileno = 83 # 88 (fnn) or 83 (resnet)
 run = "0"
 
-save = None #'plots/when-to-insert-fnns-loss-and-error-mb.pdf'
+if fileno==88:
+    net_type= 'fnns'
+    minimum_l = 0.2
+    maximum_l = 0.7
+    label_baseline = 'FNN1'
+if fileno==83:
+    net_type = 'res'
+    minimum_l = 0.05
+    maximum_l = 2.
+    label_baseline = 'ResNet1'
+
+save = None#'plots/when-to-insert-{net_type}-loss-and-error-fb.pdf'
 
 loss_all = []
 error_all = []
 times_all=[]
 
-no_batches = 10
-
-labels=["LI50","LI100","LI150","LI200","LI250","LI300","LI350","LI400","FNN1","FNNlarge"]
-no_exps = 9 # 10 for large FNN
+labels=["LI150","LI250","LI350","LI450","LI550","LI650","LI750","LI850",label_baseline,"FNN2"]
+no_exps = 9
 
 for k in range(1,no_exps+1):
 
@@ -34,7 +43,6 @@ for k in range(1,no_exps+1):
         f = json.load(file)
         aa_temp = [f[run]['errors']]
         aa = np.array(aa_temp)
-        print(f'aa shape {aa.shape}')
         
     error_all.append(aa)
 
@@ -64,7 +72,7 @@ fig.set_size_inches((20,10))
 
 
 i=0
-li_pt = 50*no_batches
+li_pt = 150
 for a, t in zip(loss_all, times_all):
     len_t = t[0,1:].shape[0]
 
@@ -72,41 +80,35 @@ for a, t in zip(loss_all, times_all):
     if True:
         axes[0].plot(a[0,:], '-', label=labels[i], linewidth=2)
     if i < 8:
-        axes[0].vlines(li_pt,0.009,0.8,linestyles='dotted',colors='blue')
+        axes[0].vlines(li_pt,minimum_l,maximum_l,linestyles='dotted',colors='blue')
     i+=1
-    li_pt+= 50*no_batches
+    li_pt+= 100
 
 axes[0].set_yscale('log')
 axes[0].set_xlabel('iterations', fontsize=20)
-axes[0].set_ylabel('(minibatch) loss', fontsize=20)
+axes[0].set_ylabel('loss', fontsize=20)
 axes[0].legend(fontsize=15,loc=3)
 
 
-li_pt = 50*no_batches
+li_pt = 150
 i=0
 for a, t in zip(error_all, times_all):
     len_t = t[0,1:].shape[0]
-    mean1 = np.nanmean(a, axis=0)
-    # only every tenth entry in mean1 is not Nan
-    mean1 = mean1[::10]
-    # generate suitbel x axis list
-    x = np.arange(0,len(mean1)*10,10)
 
     print(len_t)
     if True:
-        print(mean1[1])
         #plt.plot(a[0,:], 'o', label=labels[i], markersize=2)
-        axes[1].plot(x,mean1,'-', label=labels[i], linewidth=3)
+        axes[1].plot(a[0,:], label=labels[i], linewidth=2)
     if i < 8:
         axes[1].vlines(li_pt,0,70,linestyles='dotted',colors='blue')
     i+=1
-    li_pt+= 50*no_batches
+    li_pt+= 100
 
 
 axes[1].set_xlabel('iterations', fontsize=20)
 axes[1].set_ylabel('test error (%)', fontsize=20)
-#axes[1].set_ylim(top=61,bottom=0)
-#axes[1].set_xlim(left=0, right=5500)
+axes[1].set_ylim(top=70,bottom=0)
+#plt.xlim(left=70, right=140)
 axes[1].legend(fontsize=15,loc=3)
 #plt.title(f'{i}')
 

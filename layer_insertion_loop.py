@@ -149,7 +149,7 @@ def layer_insertion_loop(
 
         # select new model based on the shadow prices
         # insert one frozen layer and unfreeze, delete other frozen layers
-        model, kwargs_net, new_child = select_new_model(
+        model, kwargs_net, new_child, sens = select_new_model(
             free_norms, freezed_norms, model=model_tmp, freezed=freezed, kwargs_net=kwargs_net_tmp, mode=mode,
             _type=kwargs_net['type'], v2=v2)
         
@@ -230,4 +230,4 @@ def layer_insertion_loop(
     print(
         f'norm of values of parameters (parameter-wise) at layer insertion: {values_at_li}')
 
-    return model, mb_losses_total, test_err_list, test_err_list2, exit_flag, grad_norms_total, times_total
+    return model, mb_losses_total, test_err_list, test_err_list2, exit_flag, grad_norms_total, times_total, sens

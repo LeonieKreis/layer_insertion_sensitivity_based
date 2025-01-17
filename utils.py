@@ -80,3 +80,4 @@ def ema2_np(data, gamma=0.9, no_of_steps_back = 10):
     l_ema = ema2(list(data), gamma=gamma, no_of_steps_back=no_of_steps_back)
     res = np.array(l_ema)
     return res
+
