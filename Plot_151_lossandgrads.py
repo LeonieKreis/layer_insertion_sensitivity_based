@@ -6,7 +6,7 @@ import torch
 import plot_helper
 from utils import ema_np, ema2_np
 
-k = 151
+k = 151 
 
 
 
@@ -92,8 +92,8 @@ def plot_loss_error_run(run,k,li_epoch ,plot_grads=True, log_scale=True,avg=None
             li_epoch = 450
             labels1=['W1','b1','W2']
             labels2 = ['W1','b1','W2','b2','W3']
-            colors1 = ['r','r','g','g']
-            colors2 = ['r','r','b','b','g','g']
+            colors1 = ['purple','purple','y','y']
+            colors2 = ['purple','purple','b','b','y','y']
             for i,g in enumerate(a_grad[0]):
                 if avg is not None:
                     g = ema2_np(g, avg)
@@ -130,7 +130,7 @@ avg = 0.999#None
 run ="16"
 
 li_epoch = 450
-save = None #'plots/loss-and-layerwise-grads-fnn-mb.pdf'
+save = 'plots/loss-and-layerwise-grads-fnn-mb.pdf'
 
 plot_loss_error_run(run,k,li_epoch, plot_grads=True, log_scale=True,avg=avg, save = save)
 

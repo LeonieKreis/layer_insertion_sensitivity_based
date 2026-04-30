@@ -6,7 +6,7 @@ import torch
 import plot_helper
 from utils import ema_np, ema2_np
 
-k = 151
+k = 151 
 
 li_epoch = 450
 
@@ -90,7 +90,7 @@ def plot_loss_error_avg(k,li_epoch ,plot_error=True, log_scale=True, no_inits = 
         fig.set_size_inches((20,10))
 
         # first subplot plot losses
-        colors_ = ['b','r', 'y', 'g']  # , 'g', 'c', 'm', 'k']
+        colors_ = ['b','r', 'g', 'y']  # , 'g', 'c', 'm', 'k']
         for i, (aa, ta) in enumerate(zip(methods, times)):
             print(f'i is {i}')
         
@@ -119,7 +119,7 @@ def plot_loss_error_avg(k,li_epoch ,plot_error=True, log_scale=True, no_inits = 
                 mean1_epoch = mean1[0::10]
                 axes[0].plot(ta[begin:end_weg],mean1_epoch, colors_[i], label=label)
                 axes[0].vlines(li_epoch, 0, 1, colors='blue', linestyles='dotted')
-            axes[0].legend(fontsize=20)
+            axes[0].legend(fontsize=25,loc='lower left')
             if wrt_time:
                 axes[0].set_xlabel('time', fontsize=20)
             else:
@@ -133,7 +133,7 @@ def plot_loss_error_avg(k,li_epoch ,plot_error=True, log_scale=True, no_inits = 
         # plot errors
         if plot_error:
             methods_e = (ae,ae3,ae2)
-            colors_ = [ 'b','r','y', 'g']  # , 'g', 'c', 'm', 'k']
+            colors_ = [ 'b','r','g', 'y']  # , 'g', 'c', 'm', 'k']
             for i, (aa, ta) in enumerate(zip(methods_e, times)):
                 print(f'i is {i}')
                 mean1 = np.nanmean(aa, axis=0)
@@ -158,7 +158,7 @@ def plot_loss_error_avg(k,li_epoch ,plot_error=True, log_scale=True, no_inits = 
                 else:
                     axes[1].plot(ta[begin:end_weg], mean1[0:-1], colors_[i] + '-', label=label, linewidth=5)
                     axes[1].vlines(li_epoch, 0, 60, colors='blue', linestyles='dotted')
-                axes[1].legend(fontsize=20)
+                axes[1].legend(fontsize=25,loc='lower left')
                 #plt.ylim([0, 100])
                 #ma = max([a.shape[1] for a in methods])
                 # plt.xlim([0, ma])
@@ -183,7 +183,7 @@ if wrt_time:
 else:
     li_epoch = 450
 
-save = None #'plots/comp-fixed-architecture-fnns-loss-and-error-mb.pdf'
+save = None#'plots/comp-fixed-architecture-fnns-loss-and-error-mb.pdf'
 
 plot_loss_error_avg(k,li_epoch, plot_error=True, log_scale=True, no_inits = 40,wrt_time=wrt_time, save = save)
 

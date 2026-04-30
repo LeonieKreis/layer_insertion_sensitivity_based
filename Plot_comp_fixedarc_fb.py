@@ -6,7 +6,7 @@ import torch
 import plot_helper
 from utils import ema_np, ema2_np
 
-k = 6   ## 11 or 6
+k = 11   ## 11 or 6 
 
 
 
@@ -99,7 +99,7 @@ fig, axes = plt.subplots(2, gridspec_kw={'height_ratios': [5,5]})
 fig.set_size_inches((20,10))
 
 # first subplot plot losses
-colors_ = ['b', 'r', 'y','g']  # , 'g', 'c', 'm', 'k']
+colors_ = ['b', 'r', 'g','y']  # , 'g', 'c', 'm', 'k']
 for i, (aa, ta) in enumerate(zip(methods, times)):
     print(aa.shape)
     mean1 = np.nanmean(aa, axis=0)
@@ -114,7 +114,7 @@ for i, (aa, ta) in enumerate(zip(methods, times)):
     
     #axes[0].plot(ta[1:end_weg],mean1, colors_[i], label=label)
     axes[0].plot(mean1, colors_[i], label=label)
-    axes[0].legend(fontsize=20)
+    axes[0].legend(fontsize=25, loc='lower left')
     #plt.ylim([0, 2])
     ma = max([a.shape[1] for a in methods])
     axes[0].vlines(li_epoch,minimum_l,maximum_l,linestyles='dotted',colors='blue')
@@ -131,7 +131,7 @@ for i, (aa, ta) in enumerate(zip(methods, times)):
 if plot_error:
     methods_e = (ae,ce,de)
     
-    colors_ = ['b', 'r', 'y','g']  # , 'g', 'c', 'm', 'k']
+    colors_ = ['b', 'r', 'g','y']  # , 'g', 'c', 'm', 'k']
     for i, (aa, ta) in enumerate(zip(methods_e, times)):
         print(f'aa.shape {aa.shape}')
         mean1 = np.nanmean(aa, axis=0)
@@ -152,7 +152,7 @@ if plot_error:
         
         axes[1].vlines(li_epoch,minimum_e,maximum_e,linestyles='dotted',colors='blue')
     
-        axes[1].legend(fontsize=20)
+        axes[1].legend(fontsize=25, loc='lower left')
         #plt.ylim([0, 60])
         ma = max([a.shape[1] for a in methods])
         

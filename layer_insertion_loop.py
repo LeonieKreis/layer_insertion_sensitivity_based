@@ -68,6 +68,7 @@ def layer_insertion_loop(
     lr = lr_init
     exit_flag = 0  # means that wanted testerror is not attained
     end_time = 0
+    sens = None
 
     for k in range(iters):
         # iterate on current net
@@ -78,6 +79,8 @@ def layer_insertion_loop(
             optimizer = torch.optim.SGD(model.parameters(), lr)
         if optimizer_type == 'Adam':
             optimizer = torch.optim.Adam(model.parameters(), lr, weight_decay=5e-3)
+        if optimizer_type == 'Frederik':
+            optimizer = 0#TODO: include freddys optimizer
 
         # build lr scheduler
         if lrschedule_type == 'StepLR':
@@ -122,7 +125,7 @@ def layer_insertion_loop(
         if curr_test_err <= wanted_test_error:
             exit_flag = 1
             print(f'The final model has the architecture: {model}')
-            return model, mb_losses_total, test_err_list, test_err_list2, exit_flag, grad_norms_total
+            return model, mb_losses_total, test_err_list, test_err_list2, exit_flag, grad_norms_total, times_total, sens
 
         # get time of layer selection and new initialization
         tic = time.time()
@@ -160,21 +163,21 @@ def layer_insertion_loop(
 
         end_time = times_total[-1]
 
-        if save_grad_norms:
-            values_at_li = []
-            for p in model.parameters():
-                if p.requires_grad:
-                    values_at_li.append(torch.linalg.norm(p.data))
-                    print(values_at_li)
+        # if save_grad_norms:
+        #     values_at_li = []
+        #     for p in model.parameters():
+        #         if p.requires_grad:
+        #             values_at_li.append(torch.linalg.norm(p.data))
+        #             print(values_at_li)
 
-            original_stdout = sys.stdout
-            path = f'val_at_li{get_timestamp()}.txt'
-            with open(path, 'w') as f:
-                sys.stdout = f
-                print(
-                    f'norm of values of parameters (parameter-wise) at layer insertion: {values_at_li}')
-                # Reset the standard output
-                sys.stdout = original_stdout
+        #     original_stdout = sys.stdout
+        #     path = f'val_at_li{get_timestamp()}.txt'
+        #     with open(path, 'w') as f:
+        #         sys.stdout = f
+        #         print(
+        #             f'norm of values of parameters (parameter-wise) at layer insertion: {values_at_li}')
+        #         # Reset the standard output
+        #         sys.stdout = original_stdout
 
         lr = decrease_after_li * lr_end_lastloop  # decrease lr for next loop
 
@@ -186,6 +189,8 @@ def layer_insertion_loop(
         optimizer = torch.optim.SGD(model.parameters(), lr)
     if optimizer_type == 'Adam':
         optimizer = torch.optim.Adam(model.parameters(),lr, weight_decay=5e-3)
+    if optimizer_type == 'Frederik':
+            optimizer = 0#TODO: include freddys optimizer
 
     # build lr scheduler
     if lrschedule_type == 'StepLR':
@@ -208,7 +213,8 @@ def layer_insertion_loop(
                                                                     start_with_backtracking=start_with_backtracking,
                                                                     check_testerror_between=check_testerror_between,
                                                                     test_dataloader=test_dataloader, print_param_flag=print_param_flag,
-                                                                    save_grad_norms=save_grad_norms,use_adaptive_lr=use_adaptive_lr)
+                                                                    save_grad_norms=save_grad_norms,use_adaptive_lr=use_adaptive_lr,
+                                                                    save_heatmaps=False)
     # after the last li train again
 
     mb_losses_total = mb_losses_total + mb_losseslast
@@ -227,7 +233,7 @@ def layer_insertion_loop(
 
     print(f'Test error of loop {k+2} is {curr_test_err}!')
     print(f'The final model has the architecture: {model}')
-    print(
-        f'norm of values of parameters (parameter-wise) at layer insertion: {values_at_li}')
+    # print(
+    #     f'norm of values of parameters (parameter-wise) at layer insertion: {values_at_li}')
 
     return model, mb_losses_total, test_err_list, test_err_list2, exit_flag, grad_norms_total, times_total, sens

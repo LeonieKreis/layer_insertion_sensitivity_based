@@ -8,7 +8,7 @@ from utils import ema_np, ema2_np
 
 k = 6   ## 11 or 6
 
-
+save = None #f'../../Papers/plots/comp-fixed-architecture-{net_type}-loss-and-error.pdf'
 
 
 if k==11:
@@ -175,7 +175,8 @@ if plot_grads and k==6:
 
 
 plt.tight_layout()
-plt.savefig(f'../../Papers/plots/comp-fixed-architecture-{net_type}-loss-and-error.pdf', format="pdf", bbox_inches="tight")
+if save is not None:
+    plt.savefig(save, format="pdf", bbox_inches="tight")
 plt.show()
 
 # comp-fixed-architecture-resnets-loss-and-error.pdf

@@ -6,7 +6,7 @@ import torch
 import plot_helper
 from utils import ema_np, ema2_np
 
-k = 9  # 9 or 14
+k = 9  # 9 or 14 
 
 if k==9:
     no=1
@@ -94,7 +94,7 @@ for i, (aa, ta) in enumerate(zip(methods, times)):
         end_weg = None
     plt.plot(mean1, colors_[i], label=label)
     plt.vlines(450,minimum_l,maximum_l,linestyles='dotted',colors='blue')
-    plt.legend(fontsize=20)
+    plt.legend(fontsize=25, loc='lower left')
     #plt.ylim([0, 2])
     ma = max([a.shape[1] for a in methods])
     #plt.xlim([0, ma])
@@ -130,7 +130,7 @@ if plot_error:
         plt.plot(mean1, colors_[i] , label=label,
                      linewidth=2)  # , linestyle='o')
     
-        plt.legend(fontsize=20)
+        plt.legend(fontsize=25, loc='lower left')
         plt.ylim([0, 100])
         ma = max([a.shape[1] for a in methods])
         # plt.xlim([0, ma])

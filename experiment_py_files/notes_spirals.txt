@@ -29,7 +29,23 @@ Ab 15: minibatch training
 todo
 25: wie 23 nur max vs min vs bl vs big
 26: wie 23 aber li an versch punkten
+262: wie 26 nur mehr epochen hintendran
 
 80:MNIST
 81:MNIST
 82: ist nix
+
+83: when to insert mit res2, wie 8 für fnn mit hyperparam aus exp14(compfa res2 fb)
+
+111: wie 11 nur mit 3 lis
+112: wie 111 nur mit mb -> Paper new ResNet plot
+113 wie 111 nur mit größerer lr
+114: wie 111 nur mit lr decrease factor 0.7
+
+115: wie 112 mit lr decr 0.7
+116: wie 115 mit kleinerer lr
+117: wie 112 mit größerer lr
+118: wie 115 mit größerer lr
+
+# for dfg report: exp with adaptive lr
+200: as 112 but with adaptive lr True

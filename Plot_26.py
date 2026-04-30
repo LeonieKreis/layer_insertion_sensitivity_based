@@ -3,10 +3,10 @@ import json
 import matplotlib.pyplot as plt
 import matplotlib
 
-fileno = 262#261
+fileno = 263#262#261
 run = "0"
 
-save = None #'plots/when-to-insert-fnns-loss-and-error-mb.pdf'
+save = None#'plots/when-to-insert-fnns-loss-and-error-mb.pdf'
 
 loss_all = []
 error_all = []
@@ -79,7 +79,7 @@ for a, t in zip(loss_all, times_all):
 axes[0].set_yscale('log')
 axes[0].set_xlabel('iterations', fontsize=20)
 axes[0].set_ylabel('(minibatch) loss', fontsize=20)
-axes[0].legend(fontsize=15,loc=3)
+axes[0].legend(fontsize=15,loc='lower left')
 
 
 li_pt = 50*no_batches
@@ -107,7 +107,7 @@ axes[1].set_xlabel('iterations', fontsize=20)
 axes[1].set_ylabel('test error (%)', fontsize=20)
 #axes[1].set_ylim(top=61,bottom=0)
 #axes[1].set_xlim(left=0, right=5500)
-axes[1].legend(fontsize=15,loc=3)
+axes[1].legend(fontsize=15,loc='lower left')
 #plt.title(f'{i}')
 
 plt.tight_layout()

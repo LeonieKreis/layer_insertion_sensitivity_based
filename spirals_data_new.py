@@ -462,3 +462,26 @@ def check_accuracy(model, x_data, y_data):
     num_correct = torch.sum(y_arg_maxs == arg_maxs)
     acc = (num_correct * 100.0 / len(y_data))
     return acc.item()
+
+def plot_spirals(data_X, data_Y, save = None):
+    '''
+    plots the spiral dataset
+
+    Args:
+    data_X: (np.array) input data
+    data_Y: (np.array) output data
+
+    Returns:
+    no return value. generates a plot.
+    '''
+    bg_color = 'lightgray'
+    dot_size = 10
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.set_facecolor(bg_color)
+    ax.scatter(data_X[data_Y == 0, 0], data_X[data_Y == 0, 1], c='b', label='class 0', s=dot_size)
+    ax.scatter(data_X[data_Y == 1, 0], data_X[data_Y == 1, 1], c='r', label='class 1', s=dot_size)
+    #ax.legend()
+    if save is not None:
+        plt.savefig(save, format="pdf", bbox_inches="tight")
+    plt.show()
+

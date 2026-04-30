@@ -89,26 +89,6 @@ def weight_to_pic_heatmap(txtpath, param_num,nobatch, noepoch, log=True, path='h
     plt.savefig(f'{path}_{noepoch}_{nobatch}_{param_num}.png', format="png", bbox_inches="tight")
     plt.close()
 
-def grads_to_pic_heatmap_pdf(txtpath, param_num,nobatch, noepoch, log=True, path='heatmaps/heatmapgrads'):
-    weight = load_weights(txtpath,noepoch,nobatch,param_num)
-    if len(weight.shape)==1:
-        weight = weight.reshape(weight.shape[0],1)
-    weight = np.abs(weight)
-    vmin = weight.min()
-    if vmin==0:
-        vmin = 1e-5
-    vmax = weight.max()
-    if vmax == 0:
-        vmax = 1e-5
-    
-    if log:
-        sns.heatmap(weight, norm=LogNorm(vmin=vmin, vmax=vmax))
-    else:
-        sns.heatmap(weight, vmin=vmin, vmax=vmax)
-    plt.title(f'Gradients: epoch {noepoch}, batch {nobatch}', fontsize = 20)
-    plt.savefig(f'{path}_{noepoch}_{nobatch}_{param_num}_updated.pdf', format="pdf", bbox_inches="tight")
-    plt.close()
-
     
 def gen_gif_of_heatmaps(list_vals, param_it, vmin, vmax,path, nobatches, log=False, grads=True, list_all2=None, param_it2=None):
     if grads: title='Grads'
@@ -405,96 +385,30 @@ def make_movie(path, num, no_epochs=None, no_batches=None):
     print(f'Movie for param {num} saved')
 
 
-def test_view():
-    tensor = torch.empty(2,2,3,3)
-    tensor[0,0] = torch.tensor([[1,2,3],[4,5,6],[7,8,9]])
-    tensor[0,1] = torch.tensor([[11,22,33],[44,55,66],[77,88,99]])
-    tensor[1,0] = torch.tensor([[111,222,333],[444,555,666],[777,888,999]])
-    tensor[1,1] = torch.tensor([[1111,2222,3333],[4444,5555,6666],[7777,8888,9999]])
-    flat = tensor.reshape(6,6)#view(6,6)
-    flat_new = torch.empty(6,6)
-    for i in range(2):
-        for j in range(2):
-            flat_new[i*3:i*3+3,j*3:j*3+3] = tensor[i,j]
-    print(flat_new)
-    flat_new2 = torch.empty(6,6)
-    # create flatnew2 from flat by reshaping
-    flat_flat = flat.view(36)
-    k=0
-    for j in range(2):
-        for i in range(2):
-            filter_curr = flat_flat[k*9:k*9+9].reshape(3,3)
-            flat_new2[j*3:j*3+3,i*3:i*3+3] = filter_curr
-            k+=1
-    print(flat_new2)
-    sns.heatmap(flat_new2, norm=LogNorm(vmin=1, vmax=10000))
-    plt.show()
 
 
-def heatmapplot_cnn_single():
-    epoch = 0
-    param_num=2
-    for batch in [0,1,2]:
-        txtpath = f'heatmaps/grads/grads_cnn/grads_'
-        plotpath = f'heatmaps/gifs/cnn_mb/limax/'
-        log=True
-        weight_old = load_weights(txtpath,epoch,batch,param_num)
-        # convert weight to structured 2d tensor
-        weight = torch.empty(30,30)
-        weight_flat = weight_old.flatten()
-        weight_flat = torch.from_numpy(weight_flat)
-        k = 0 # no. filters inch x outch
-        for i in range(10):
-            for j in range(10):
-                weight[i*3:i*3+3,j*3:j*3+3] = weight_flat[k*9:k*9+9].reshape(3,3)
-                k+=1
-        # convert weight from tensor to numpy
-        weight = weight.numpy()
-        if len(weight.shape)==1:
-            weight = weight.reshape(weight.shape[0],1)
-        weight = np.abs(weight)
-        vmin = weight.min()
-        if vmin==0:
-            vmin = 1e-5
-        vmax = weight.max()
-        if vmax == 0:
-            vmax = 1e-5
-        
-        if log:
-            sns.heatmap(weight, norm=LogNorm(vmin=vmin, vmax=vmax))
-        else:
-            sns.heatmap(weight, vmin=vmin, vmax=vmax)
-        plt.title(f'Vals: epoch {epoch}, batch {batch}')
-        plt.savefig(f'{plotpath}_{epoch}_{batch}_{param_num}.pdf', format="pdf", bbox_inches="tight")
-        plt.close()
-
-
-    #heatmap.weight_to_pic_heatmap(txtpath,param_num, batch, epoch, log=True, path=plotpath )
 
 if __name__=='__main__':
 
-    #test_view()
-    heatmapplot_cnn_single()
+    from nets import feed_forward
+    from stepfunction_dataset import gen_steps_dataset
 
-    # from nets import feed_forward
-    # from stepfunction_dataset import gen_steps_dataset
+    model = feed_forward(1,1,1,3,flatten=False)
+    train, test, x,y = gen_steps_dataset(batchsize=37)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 
-    # model = feed_forward(1,1,1,3,flatten=False)
-    # train, test, x,y = gen_steps_dataset(batchsize=37)
-    # optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
-
-    # for i, (x,y) in enumerate(train):
-    #     model.zero_grad()
-    #     loss = torch.nn.CrossEntropyLoss()( model(x),y)
-    #     loss.backward()
-    #     #for p in model.parameters(): 
-    #     #    print(p.data.detach().numpy())
-    #     #    print(p.grad.data.detach().numpy())
-    #     #save_weightgrads_heatmap(model, 1, i)
-    #     #save_weightvalues_heatmap(model, 1, i)
-    #     print(i)
-    #     optimizer.step()
-    #     if i==0: break
+    for i, (x,y) in enumerate(train):
+        model.zero_grad()
+        loss = torch.nn.CrossEntropyLoss()( model(x),y)
+        loss.backward()
+        #for p in model.parameters(): 
+        #    print(p.data.detach().numpy())
+        #    print(p.grad.data.detach().numpy())
+        #save_weightgrads_heatmap(model, 1, i)
+        #save_weightvalues_heatmap(model, 1, i)
+        print(i)
+        optimizer.step()
+        if i==0: break
     # pathgrads = 'heatmaps/heatmapgrads'
     # pathvals = 'heatmaps/heatmapvals'
     # for num in range(3):  

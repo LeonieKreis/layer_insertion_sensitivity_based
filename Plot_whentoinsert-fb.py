@@ -3,10 +3,10 @@ import json
 import matplotlib.pyplot as plt
 import matplotlib
 
-fileno = 83 # 88 (fnn) or 83 (resnet)
+fileno = 89 # 88 or 89(relthresh) (fnn) or 83 (resnet) 
 run = "0"
 
-if fileno==88:
+if fileno==88 or fileno==89:
     net_type= 'fnns'
     minimum_l = 0.2
     maximum_l = 0.7
@@ -17,7 +17,7 @@ if fileno==83:
     maximum_l = 2.
     label_baseline = 'ResNet1'
 
-save = None#'plots/when-to-insert-{net_type}-loss-and-error-fb.pdf'
+save = f'plots/when-to-insert-{net_type}-loss-and-error-fb.pdf'
 
 loss_all = []
 error_all = []
@@ -87,7 +87,7 @@ for a, t in zip(loss_all, times_all):
 axes[0].set_yscale('log')
 axes[0].set_xlabel('iterations', fontsize=20)
 axes[0].set_ylabel('loss', fontsize=20)
-axes[0].legend(fontsize=15,loc=3)
+axes[0].legend(fontsize=15,loc='lower left')
 
 
 li_pt = 150
@@ -109,7 +109,7 @@ axes[1].set_xlabel('iterations', fontsize=20)
 axes[1].set_ylabel('test error (%)', fontsize=20)
 axes[1].set_ylim(top=70,bottom=0)
 #plt.xlim(left=70, right=140)
-axes[1].legend(fontsize=15,loc=3)
+axes[1].legend(fontsize=15,loc='lower left')
 #plt.title(f'{i}')
 
 plt.tight_layout()

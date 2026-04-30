@@ -6,7 +6,7 @@ import torch
 import plot_helper
 from utils import ema_np, ema2_np
 
-k = 251
+k = 251 
 
 li_epoch = 250
 
@@ -249,7 +249,7 @@ def plot_loss_error_avg(k,li_epoch , log_scale=True, no_inits = 10, save = None)
         fig.set_size_inches((20,5))
 
         # first subplot plot losses
-        colors_ = ['b', 'orange', 'y','g']  # , 'g', 'c', 'm', 'k']
+        colors_ = ['b', 'orange', 'r','g']  # , 'g', 'c', 'm', 'k']
         for i, (aa, ta) in enumerate(zip(methods, times)):
             print(aa.shape)
             print(a0.shape)
@@ -269,7 +269,7 @@ def plot_loss_error_avg(k,li_epoch , log_scale=True, no_inits = 10, save = None)
             #plt.plot(ta[1:end_weg],mean1, colors_[i], label=label)
             axes.plot(mean1, colors_[i], label=label)
             axes.vlines(li_epoch*10, 0, 1, colors='blue', linestyles='dotted')
-            axes.legend(fontsize=20)
+            axes.legend(fontsize=25, loc='lower left')
             #plt.ylim([0, 2])
             #ma = max([a.shape[1] for a in methods])
             #plt.xlim([0, ma])

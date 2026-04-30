@@ -21,6 +21,8 @@ from spirals_data_new import gen_spiral_dataset
 # for checking the progress of the training in the terminal, use the bash command: jp length filename.json
 # to see how many runs are already saved
 
+k= 112
+#before running chenge no runs and no epochs to correct numbers (commented)
 
 # seed
 s=1
@@ -42,7 +44,7 @@ _type = 'res2'
 act_fun = nn.Tanh
 interval_testerror = 1
 
-batchsize = 450 #450 
+batchsize = 45 # 10 mini-batches
 no_per_class = 300
 r0=0.5
 circles = 1
@@ -104,7 +106,7 @@ kwargs_net_classical = {
 # classical net small
 kwargs_net_classical2 = {
     'hidden_layers': hidden_layers_classical+no_iters,
-    'dim_hidden_layers': 2*fix_width_classical,
+    'dim_hidden_layers': fix_width_classical,
     'act_fun': act_fun,
     'type': _type
 }
@@ -121,17 +123,17 @@ T5 = True
 
 # define no of training run instances
 
-no_of_initializations = 1  # 50
+no_of_initializations = 30  
 
 # set up empty lists for saving the observed quantities
 # (besides the save to the json file)
 
-final_testerror1 = []
-final_testerror2 = []
-final_testerror3 = []
-final_testerror4 = []
 
 # declare path where json files are saved
+path1 = f'results_data_spirals/Exp{k}_1.json'
+if os.path.isfile(path1):
+    print(f' file with path {path1} already exists!')
+    quit()
 
 
 
@@ -156,6 +158,9 @@ for i in range(no_of_initializations):
     # train ali 1
     print('training on first ali')
     if T1:
+        random.seed(s)
+        np.random.seed(s)
+        torch.manual_seed(s)
         model1, mb_losses1, test_errors_short1, test_errors1, exit_flag1, grad_norm1, times1, sens1 = layer_insertion_loop(
             iters=no_iters,
             epochs=epochs,
@@ -179,6 +184,12 @@ for i in range(no_of_initializations):
             save_grad_norms=save_grad_norms
         )
 
+        # save
+        write_losses(path1,
+                     mb_losses1, max_length, end_list, test_errors1,
+                     interval_testerror=interval_testerror, times=times1,
+                     grad_norms = grad_norm1, its_per_epoch=no_steps_per_epoch)
+
     if T2:
 
         if _type == 'fwd':
@@ -192,6 +203,9 @@ for i in range(no_of_initializations):
         torch.nn.utils.vector_to_parameters(param_init2, model_init2.parameters())
 
         print('training on second ali')
+        random.seed(s)
+        np.random.seed(s)
+        torch.manual_seed(s)
         model2, mb_losses2, test_errors_short2, test_errors2, exit_flag2, grad_norm2, times2, sens2 = layer_insertion_loop(
             iters=no_iters,
             epochs=epochs,
@@ -214,6 +228,12 @@ for i in range(no_of_initializations):
             v2=True,
             save_grad_norms=save_grad_norms
         )
+
+        # save
+        write_losses(f'results_data_spirals/Exp{k}_2.json',
+                     mb_losses2, max_length, end_list, test_errors2, interval_testerror=interval_testerror,
+                       times=times2, grad_norms = grad_norm2,
+                     its_per_epoch=no_steps_per_epoch)
 
     if T3:
         # baseline
@@ -246,6 +266,9 @@ for i in range(no_of_initializations):
         # train classical  small
         print('classical training small!')
         print('training classically on model', model_classical)
+        random.seed(s)
+        np.random.seed(s)
+        torch.manual_seed(s)
         mblosses_classical, lr_end, test_error_classical, exit_flag3, grad_norm3, times3 = train(model_classical,
                                                                     train_dataloader=td,
                                                                     epochs=epochs_classical,
@@ -258,6 +281,12 @@ for i in range(no_of_initializations):
                                                                     print_param_flag=False,
                                                                     save_grad_norms=save_grad_norms
                                                                     )
+        
+        # save
+        write_losses(f'results_data_spirals/Exp{k}_3.json',
+                     mblosses_classical, max_length, end_list, test_error_classical, interval_testerror=interval_testerror,
+                       times=times3, grad_norms = grad_norm3,
+                     its_per_epoch=no_steps_per_epoch)
         
     # build net for classical big
     if _type == 'fwd':
@@ -288,6 +317,9 @@ for i in range(no_of_initializations):
     print('classical training big!')
     if T4:
         print('training classically on model', model_classical2)
+        random.seed(s)
+        np.random.seed(s)
+        torch.manual_seed(s)
         mblosses_classical2, lr_end2, test_error_classical2, exit_flag4, grad_norm4, times4 = train(model_classical2,
                                                                  train_dataloader=td,
                                                                  epochs=epochs_classical,
@@ -301,8 +333,15 @@ for i in range(no_of_initializations):
                                                                  save_grad_norms=save_grad_norms
                                                                  )
         
+        # save
+        write_losses(f'results_data_spirals/Exp{k}_4.json',
+                        mblosses_classical2, max_length, end_list, test_error_classical2, 
+                        interval_testerror=interval_testerror,
+                        times=times4, grad_norms = grad_norm4,
+                        its_per_epoch=no_steps_per_epoch)
+        
     
-if T5:
+    if T5:
         if _type == 'fwd':
             model_init5 = feed_forward(dim_in, dim_out, **kwargs_net)
         if _type == 'res2':
@@ -314,6 +353,9 @@ if T5:
         torch.nn.utils.vector_to_parameters(param_init3, model_init5.parameters())
 
         print('training on random insertion')
+        random.seed(s)
+        np.random.seed(s)
+        torch.manual_seed(s)
         model5, mb_losses5, test_errors_short5, test_errors5, exit_flag5, grad_norm5, times5, sens5 = layer_insertion_loop(
             iters=no_iters,
             epochs=epochs,
@@ -337,36 +379,33 @@ if T5:
             save_grad_norms=save_grad_norms
         )
 
+        # save
+        write_losses(f'results_data_spirals/Exp{k}_5.json',
+                    mb_losses5, max_length, end_list, test_errors5, interval_testerror=interval_testerror,
+                    times=times5, grad_norms = grad_norm5,
+                    its_per_epoch=no_steps_per_epoch)
+    s+=1
 
-# plt.plot(mb_losses1)
-# plt.plot(mb_losses2)
-# plt.plot(mblosses_classical)
-# plt.plot(mblosses_classical2)
-# plt.plot(mb_losses5)
-# plt.show()
-# plt.plot(test_errors1)
-# plt.plot(test_errors2)
-# plt.plot(test_error_classical)
-# plt.plot(test_error_classical2)
-# plt.plot(test_errors5)
-# plt.show()
 
-# plot all losses and test errors in a subplot each ie in 2 plots
-fig, ax = plt.subplots(2, 1, figsize=(10, 10))
-ax[0].plot(mb_losses1, label='ali1')
-ax[0].plot(mb_losses2, label='ali2')
-ax[0].plot(mblosses_classical, label='classical1')
-ax[0].plot(mblosses_classical2, label='classical2')
-ax[0].plot(mb_losses5, label='random')
-ax[0].legend()
-ax[0].set_title('losses')
-ax[1].plot(test_errors1, label='ali1')
-ax[1].plot(test_errors2, label='ali2')
-ax[1].plot(test_error_classical, label='classical1')
-ax[1].plot(test_error_classical2, label='classical2')
-ax[1].plot(test_errors5, label='random')
-ax[1].legend()
-ax[1].set_title('test errors')
-plt.show()
+
+
+if False:
+    # plot all losses and test errors in a subplot each ie in 2 plots
+    fig, ax = plt.subplots(2, 1, figsize=(10, 10))
+    ax[0].plot(mb_losses1, label='ali1')
+    ax[0].plot(mb_losses2, label='ali2')
+    ax[0].plot(mblosses_classical, label='classical1')
+    ax[0].plot(mblosses_classical2, label='classical2')
+    ax[0].plot(mb_losses5, label='random')
+    ax[0].legend()
+    ax[0].set_title('losses')
+    ax[1].plot(test_errors1, label='ali1')
+    ax[1].plot(test_errors2, label='ali2')
+    ax[1].plot(test_error_classical, label='classical1')
+    ax[1].plot(test_error_classical2, label='classical2')
+    ax[1].plot(test_errors5, label='random')
+    ax[1].legend()
+    ax[1].set_title('test errors')
+    plt.show()
 
 
